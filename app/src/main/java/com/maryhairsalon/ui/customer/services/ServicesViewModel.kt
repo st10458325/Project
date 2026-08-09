@@ -1,0 +1,93 @@
+package com.maryhairsalon.ui.customer.services
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.maryhairsalon.data.models.Category
+import com.maryhairsalon.data.models.Service
+import com.maryhairsalon.data.repository.CatalogRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+enum class CatalogView { CATEGORIES, CATEGORY_DETAIL, SEARCH }
+
+data class ServicesUiState(
+    val isLoading: Boolean = true,
+    val errorMessage: String? = null,
+    val categories: List<Category> = emptyList(),
+    val servicesByCategory: Map<String, List<Service>> = emptyMap(),
+    val view: CatalogView = CatalogView.CATEGORIES,
+    val selectedCategoryId: String? = null,
+    val searchQuery: String = ""
+)
+
+class ServicesViewModel(
+    private val repository: CatalogRepository = CatalogRepository()
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(ServicesUiState())
+    val uiState: StateFlow<ServicesUiState> = _uiState.asStateFlow()
+
+    init { loadCatalog() }
+
+    fun loadCatalog() {
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            try {
+                val categories = repository.getCategories()
+                val services = repository.getServices()
+                val byCategory = services.groupBy { it.category }
+                val withCounts = categories.map { it.copy(count = byCategory[it.id]?.size ?: 0) }
+
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    categories = withCounts,
+                    servicesByCategory = byCategory
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    isLoading = false,
+                    errorMessage = "Something went wrong loading services. Please refresh."
+                )
+            }
+        }
+    }
+
+    fun openCategory(categoryId: String) {
+        _uiState.value = _uiState.value.copy(
+            view = CatalogView.CATEGORY_DETAIL,
+            selectedCategoryId = categoryId
+        )
+    }
+
+    fun backToCategories() {
+        _uiState.value = _uiState.value.copy(
+            view = CatalogView.CATEGORIES,
+            selectedCategoryId = null,
+            searchQuery = ""
+        )
+    }
+
+    fun setSearchQuery(query: String) {
+        _uiState.value = _uiState.value.copy(
+            searchQuery = query,
+            view = if (query.isBlank()) CatalogView.CATEGORIES else CatalogView.SEARCH
+        )
+    }
+
+    val selectedCategory: Category?
+        get() = _uiState.value.categories.find { it.id == _uiState.value.selectedCategoryId }
+
+    val selectedCategoryServices: List<Service>
+        get() = _uiState.value.servicesByCategory[_uiState.value.selectedCategoryId].orEmpty()
+
+    val searchResults: List<Service>
+        get() {
+            val query = _uiState.value.searchQuery.trim().lowercase()
+            if (query.isBlank()) return emptyList()
+            return _uiState.value.servicesByCategory.values.flatten().filter { svc ->
+                "${svc.title} ${svc.category} ${svc.tags.joinToString(" ")}".lowercase().contains(query)
+            }
+        }
+}

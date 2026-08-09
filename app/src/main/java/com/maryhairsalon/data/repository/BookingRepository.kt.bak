@@ -1,0 +1,73 @@
+package com.maryhairsalon.customer.data
+
+import android.util.Log
+import com.google.firebase.firestore.FieldValue
+import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.Query
+import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.tasks.await
+
+class BookingRepository(
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+) {
+    /**
+     * Live-updating booking list for a user.
+     * Moving the sort logic to Kotlin to avoid potential composite index requirements
+     * that might be blocking real-time updates if not perfectly configured.
+     */
+    fun observeBookings(uid: String): Flow<Result<List<Booking>>> = callbackFlow {
+        Log.d("BookingRepo", "Starting listener for uid: $uid")
+        val statusOrder = mapOf("pending" to 0, "upcoming" to 1, "completed" to 2, "cancelled" to 3)
+
+        val registration = db.collection("bookings")
+            .whereEqualTo("uid", uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e("BookingRepo", "Snapshot error: ${error.message}", error)
+                    trySend(Result.failure(error))
+                    return@addSnapshotListener
+                }
+
+                Log.d("BookingRepo", "Snapshot received: ${snapshot?.size()} docs (fromCache: ${snapshot?.metadata?.isFromCache})")
+                
+                val bookings = snapshot?.toObjects(Booking::class.java)
+                    ?.sortedWith(compareBy<Booking> { statusOrder[it.status] ?: 3 }
+                        .thenByDescending { it.date }
+                    ) ?: emptyList()
+
+                trySend(Result.success(bookings))
+            }
+
+        awaitClose { 
+            Log.d("BookingRepo", "Removing listener for uid: $uid")
+            registration.remove() 
+        }
+    }
+
+    suspend fun getBooking(id: String): Booking? {
+        val snapshot = db.collection("bookings").document(id).get().await()
+        return snapshot.toObject(Booking::class.java)
+    }
+
+    suspend fun cancelBooking(bookingId: String) {
+        db.collection("bookings").document(bookingId)
+            .update("status", "cancelled")
+            .await()
+    }
+
+    suspend fun addBooking(uid: String, data: Map<String, Any?>) {
+        val payload = data + mapOf(
+            "uid" to uid,
+            "status" to "pending",
+            "createdAt" to FieldValue.serverTimestamp()
+        )
+        db.collection("bookings").add(payload).await()
+    }
+
+    suspend fun updateBooking(bookingId: String, data: Map<String, Any?>) {
+        val payload = data + mapOf("updatedAt" to FieldValue.serverTimestamp())
+        db.collection("bookings").document(bookingId).update(payload).await()
+    }
+}

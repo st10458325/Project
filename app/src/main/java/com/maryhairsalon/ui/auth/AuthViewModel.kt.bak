@@ -1,0 +1,57 @@
+package com.maryhairsalon.customer.ui.auth
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.maryhairsalon.customer.data.AuthRepository
+import com.maryhairsalon.customer.data.AuthResult
+import com.maryhairsalon.customer.data.SignupData
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+
+data class AuthUiState(
+    val isLoading: Boolean = false,
+    val errorMessage: String? = null,
+    val isLoggedIn: Boolean = false
+)
+
+class AuthViewModel(
+    private val repository: AuthRepository = AuthRepository()
+) : ViewModel() {
+
+    private val _uiState = MutableStateFlow(AuthUiState())
+    val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    fun login(email: String, password: String) {
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            _uiState.value = when (val result = repository.login(email.trim(), password)) {
+                is AuthResult.Success -> _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                is AuthResult.Error -> _uiState.value.copy(isLoading = false, errorMessage = result.message)
+            }
+        }
+    }
+
+    fun signup(
+        name: String, surname: String, email: String,
+        contact: String, password: String, confirmPassword: String
+    ) {
+        if (password != confirmPassword) {
+            _uiState.value = _uiState.value.copy(errorMessage = "Passwords don't match.")
+            return
+        }
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            val data = SignupData(name.trim(), surname.trim(), email.trim(), contact.trim(), password)
+            _uiState.value = when (val result = repository.signup(data)) {
+                is AuthResult.Success -> _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                is AuthResult.Error -> _uiState.value.copy(isLoading = false, errorMessage = result.message)
+            }
+        }
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+}

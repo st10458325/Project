@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "355995364975",
+    "project_id": "mary-hair-salon",
+    "storage_bucket": "mary-hair-salon.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:355995364975:android:b2833ee9193df228b4a79a",
+        "android_client_info": {
+          "package_name": "com.maryhairsalon.customer"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "355995364975-5fgvuthe3ifvimsmctag1ddi2hs4pip9.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDpA2uTZ6MCxJHjYaIni0FxShiJlSK62Xg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "355995364975-5fgvuthe3ifvimsmctag1ddi2hs4pip9.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

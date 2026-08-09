@@ -1,0 +1,14 @@
+package com.maryhairsalon.customer.data
+
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+
+class CatalogRepository(
+    private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
+) {
+    suspend fun getCategories(): List<Category> =
+        db.collection("categories").get().await().toObjects(Category::class.java)
+
+    suspend fun getServices(): List<Service> =
+        db.collection("services").get().await().toObjects(Service::class.java)
+}

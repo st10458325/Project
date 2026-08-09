@@ -1,0 +1,29 @@
+package com.maryhairsalon.data.models
+
+import com.google.firebase.firestore.DocumentId
+
+data class Booking(
+    @DocumentId val id: String = "",
+    val uid: String = "",
+    val name: String = "",
+    val surname: String = "",
+    val contact: String = "",
+    val employee: String = "",
+    val employeeId: String = "",
+    val category: String = "",
+    val categoryLabel: String = "",
+    val service: String = "",
+    val type: String = "Outcall",
+    val location: String = "",
+    val date: String = "",
+    val dateFormatted: String = "",
+    val time: String = "",
+    val notes: String = "",
+    val cost: Double = 0.0,
+    val discount: Double = 0.0,
+    val total: Double = 0.0,
+    val price: String = "",
+    val status: String = "pending",
+    val employeeNotified: Boolean = true,
+    val customerNotified: Boolean = true
+)
