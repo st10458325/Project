@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -177,7 +178,8 @@ private fun MainScreen(onLogout: () -> Unit) {
                     NavigationBar(
                         containerColor = BackgroundDeep,
                         contentColor = TextMuted,
-                        tonalElevation = 0.dp
+                        tonalElevation = 0.dp,
+                        modifier = Modifier.height(75.dp)
                     ) {
                         NavigationBarItem(
                             selected = currentRoute == "services",

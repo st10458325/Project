@@ -20,8 +20,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.lerp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.data.models.Booking
@@ -40,6 +45,33 @@ fun BookingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var pendingCancelId by remember { mutableStateOf<String?>(null) }
+    val scrollState = rememberLazyListState()
+    
+    val headerHeight = 200.dp
+    val minHeaderHeight = 80.dp
+    val headerHeightPx = with(LocalDensity.current) { headerHeight.toPx() }
+    val minHeaderHeightPx = with(LocalDensity.current) { minHeaderHeight.toPx() }
+
+    val scrollOffset = remember { derivedStateOf { scrollState.firstVisibleItemScrollOffset } }
+    val isFirstItemVisible = remember { derivedStateOf { scrollState.firstVisibleItemIndex == 0 } }
+
+    val currentHeaderHeight = remember {
+        derivedStateOf {
+            if (isFirstItemVisible.value) {
+                val offset = scrollOffset.value.toFloat()
+                val newHeight = (headerHeightPx - offset).coerceAtLeast(minHeaderHeightPx)
+                newHeight
+            } else {
+                minHeaderHeightPx
+            }
+        }
+    }
+
+    val progress = remember {
+        derivedStateOf {
+            ((currentHeaderHeight.value - minHeaderHeightPx) / (headerHeightPx - minHeaderHeightPx)).coerceIn(0f, 1f)
+        }
+    }
 
     Scaffold(
         containerColor = BackgroundDeep,
@@ -92,7 +124,10 @@ fun BookingsScreen(
                 .fillMaxSize()
         ) {
             // Header Section
-            HeaderSection()
+            HeaderSection(
+                height = with(LocalDensity.current) { currentHeaderHeight.value.toDp() },
+                progress = progress.value
+            )
 
             // Filter chips
             FilterSection(
@@ -116,6 +151,7 @@ fun BookingsScreen(
                     )
                 }
                 else -> LazyColumn(
+                    state = scrollState,
                     contentPadding = PaddingValues(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
@@ -150,11 +186,11 @@ fun BookingsScreen(
 }
 
 @Composable
-private fun HeaderSection() {
+private fun HeaderSection(height: androidx.compose.ui.unit.Dp, progress: Float) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .height(200.dp)
+            .height(height)
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
@@ -165,24 +201,35 @@ private fun HeaderSection() {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text(
-                "Your Account",
-                style = MaterialTheme.typography.labelMedium,
-                color = AccentAmber,
-                fontWeight = FontWeight.Bold
-            )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.graphicsLayer {
+                alpha = progress.coerceAtLeast(0.3f)
+                scaleX = 0.8f + (progress * 0.2f)
+                scaleY = 0.8f + (progress * 0.2f)
+            }
+        ) {
+            if (progress > 0.5f) {
+                Text(
+                    "Your Account",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = AccentAmber,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             Text(
                 "My Bookings",
-                style = MaterialTheme.typography.displayLarge,
+                style = lerp(MaterialTheme.typography.titleLarge, MaterialTheme.typography.displayLarge, progress),
                 color = Color.White
             )
-            Spacer(Modifier.height(8.dp))
-            Text(
-                "All your appointments, in one place.",
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextMuted
-            )
+            if (progress > 0.8f) {
+                Spacer(Modifier.height(8.dp))
+                Text(
+                    "All your appointments, in one place.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextMuted
+                )
+            }
         }
     }
 }
