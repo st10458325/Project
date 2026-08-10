@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,47 +27,87 @@ import com.maryhairsalon.data.models.Booking
 import com.maryhairsalon.data.models.Category
 import com.maryhairsalon.data.models.Service
 import com.maryhairsalon.data.models.User
+import com.maryhairsalon.ui.theme.AccentAmber
+import com.maryhairsalon.ui.theme.TextMuted
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.maryhairsalon.ui.theme.BackgroundDeep
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManagerDashboardScreen(
     onLogout: () -> Unit,
+    onMenuClick: () -> Unit,
     viewModel: ManagerViewModel = viewModel()
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
+        containerColor = BackgroundDeep,
         topBar = {
-            TopAppBar(
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = BackgroundDeep,
+                    titleContentColor = Color.White
+                ),
                 title = {
-                    Text(when (selectedTab) { 0 -> "All Bookings"; 1 -> "Staff"; else -> "Catalog" })
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(32.dp).padding(4.dp), contentAlignment = Alignment.Center) {
+                            Text("♕", fontSize = 24.sp, color = AccentAmber)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Mary", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(
+                                when (selectedTab) { 0 -> "All Bookings"; 1 -> "Staff"; else -> "Catalog" },
+                                style = MaterialTheme.typography.labelSmall, color = TextMuted, fontSize = 10.sp
+                            )
+                        }
+                    }
                 },
+                navigationIcon = {},
                 actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout")
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
                     }
                 }
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = BackgroundDeep, contentColor = TextMuted, tonalElevation = 0.dp) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                    label = { Text("Bookings") }
+                    label = { Text("Bookings") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
+                        unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
+                        indicatorColor = Color.Transparent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     icon = { Icon(Icons.Default.Group, contentDescription = null) },
-                    label = { Text("Staff") }
+                    label = { Text("Staff") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
+                        unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
+                        indicatorColor = Color.Transparent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
                     icon = { Icon(Icons.Default.ContentCut, contentDescription = null) },
-                    label = { Text("Catalog") }
+                    label = { Text("Catalog") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
+                        unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
+                        indicatorColor = Color.Transparent
+                    )
                 )
             }
         }

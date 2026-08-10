@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 data class BookingsUiState(
     val isLoading: Boolean = true,
     val bookings: List<Booking> = emptyList(),
+    val counts: Map<String, Int> = emptyMap(),
     val errorMessage: String? = null,
     val activeFilter: String = "all"
 )
@@ -32,9 +33,17 @@ class BookingsViewModel(
                 val filtered = if (filter == "all") allBookings
                 else allBookings.filter { it.status.equals(filter, ignoreCase = true) }
                 
+                val counts = mutableMapOf<String, Int>()
+                counts["all"] = allBookings.size
+                counts["pending"] = allBookings.count { it.status.equals("pending", ignoreCase = true) }
+                counts["upcoming"] = allBookings.count { it.status.equals("upcoming", ignoreCase = true) }
+                counts["completed"] = allBookings.count { it.status.equals("completed", ignoreCase = true) }
+                counts["cancelled"] = allBookings.count { it.status.equals("cancelled", ignoreCase = true) }
+
                 BookingsUiState(
                     isLoading = false,
                     bookings = filtered,
+                    counts = counts,
                     activeFilter = filter,
                     errorMessage = null
                 )

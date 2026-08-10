@@ -15,11 +15,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,6 +30,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.data.models.Category
 import com.maryhairsalon.data.models.User
+import com.maryhairsalon.ui.theme.AccentAmberLight
+import com.maryhairsalon.ui.theme.AccentDeep
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.YearMonth
@@ -161,12 +165,23 @@ fun BookingFormScreen(
             Button(
                 onClick = viewModel::submit,
                 enabled = !uiState.isSubmitting,
-                modifier = Modifier.fillMaxWidth().height(50.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(listOf(AccentDeep, AccentAmberLight)),
+                        shape = RoundedCornerShape(12.dp)
+                    ),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
+                elevation = ButtonDefaults.buttonElevation(0.dp)
             ) {
                 if (uiState.isSubmitting) {
                     CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                 } else {
-                    Text(if (uiState.editingBookingId != null) "Save Changes" else "Confirm Booking")
+                    Text(
+                        if (uiState.editingBookingId != null) "Save Changes" else "Confirm Booking",
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
 

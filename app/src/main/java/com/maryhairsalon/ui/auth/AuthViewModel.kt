@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.maryhairsalon.data.repository.AuthRepository
 import com.maryhairsalon.data.repository.AuthResult
 import com.maryhairsalon.data.repository.SignupData
+import com.maryhairsalon.data.models.User
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +16,8 @@ data class AuthUiState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val isLoggedIn: Boolean = false,
-    val userRole: String? = null
+    val userRole: String? = null,
+    val userProfile: User? = null
 )
 
 class AuthViewModel(
@@ -24,6 +26,20 @@ class AuthViewModel(
 
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
+
+    init {
+        val currentUser = repository.currentUser
+        if (currentUser != null) {
+            fetchUserProfile(currentUser.uid)
+        }
+    }
+
+    private fun fetchUserProfile(uid: String) {
+        viewModelScope.launch {
+            val user = repository.getUser(uid)
+            _uiState.value = _uiState.value.copy(userProfile = user)
+        }
+    }
 
     fun login(email: String, password: String) {
         Log.d("AuthVM", "Login requested for $email")
@@ -34,6 +50,7 @@ class AuthViewModel(
                     Log.d("AuthVM", "Login success for ${result.user.uid}")
                     val role = repository.getUserRole(result.user.uid)
                     Log.d("AuthVM", "Role fetched: $role")
+                    fetchUserProfile(result.user.uid)
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isLoggedIn = true,
@@ -63,7 +80,10 @@ class AuthViewModel(
         viewModelScope.launch {
             val data = SignupData(name.trim(), surname.trim(), email.trim(), contact.trim(), password)
             _uiState.value = when (val result = repository.signup(data)) {
-                is AuthResult.Success -> _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                is AuthResult.Success -> {
+                    fetchUserProfile(result.user.uid)
+                    _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                }
                 is AuthResult.Error -> _uiState.value.copy(isLoading = false, errorMessage = result.message)
             }
         }

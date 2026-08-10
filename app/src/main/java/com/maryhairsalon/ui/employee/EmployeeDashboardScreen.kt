@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,38 +15,75 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.data.models.Booking
+import com.maryhairsalon.ui.theme.AccentAmber
+import com.maryhairsalon.ui.theme.TextMuted
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
+import com.maryhairsalon.ui.theme.BackgroundDeep
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EmployeeDashboardScreen(
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onMenuClick: () -> Unit
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
+        containerColor = BackgroundDeep,
         topBar = {
-            TopAppBar(
-                title = { Text("Employee Portal") },
+            CenterAlignedTopAppBar(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = BackgroundDeep,
+                    titleContentColor = Color.White
+                ),
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Box(Modifier.size(32.dp).padding(4.dp), contentAlignment = Alignment.Center) {
+                            Text("♕", fontSize = 24.sp, color = AccentAmber)
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Column {
+                            Text("Mary", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
+                            Text(
+                                if (selectedTab == 0) "My Schedule" else "Profile",
+                                style = MaterialTheme.typography.labelSmall, color = TextMuted, fontSize = 10.sp
+                            )
+                        }
+                    }
+                },
+                navigationIcon = {},
                 actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Person, contentDescription = "Logout")
+                    IconButton(onClick = onMenuClick) {
+                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
                     }
                 }
             )
         },
         bottomBar = {
-            NavigationBar {
+            NavigationBar(containerColor = BackgroundDeep, contentColor = TextMuted, tonalElevation = 0.dp) {
                 NavigationBarItem(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     icon = { Icon(Icons.Default.Assignment, contentDescription = null) },
-                    label = { Text("My Schedule") }
+                    label = { Text("My Schedule") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
+                        unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
+                        indicatorColor = Color.Transparent
+                    )
                 )
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("Profile") }
+                    label = { Text("Profile") },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
+                        unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
+                        indicatorColor = Color.Transparent
+                    )
                 )
             }
         }
@@ -58,6 +96,7 @@ fun EmployeeDashboardScreen(
         }
     }
 }
+
 @Composable
 private fun ScheduleView(viewModel: EmployeeScheduleViewModel = viewModel()) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()

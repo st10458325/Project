@@ -6,5 +6,7 @@ data class User(
     @DocumentId val id: String = "",
     val name: String = "",
     val email: String = "",
-    val role: String = "customer" // "customer", "employee", "manager"
+    val role: String = "customer", // "customer", "employee", "manager"
+    val title: String = "",        // optional display role for the About screen, e.g. "Master Barber"
+    val photoUrl: String = ""      // optional portrait photo — same manual GitHub-hosting pattern as service images
 )
