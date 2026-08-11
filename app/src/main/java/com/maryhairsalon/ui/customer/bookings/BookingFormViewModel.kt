@@ -25,16 +25,22 @@ val TIME_SLOTS = listOf(
 
 val DEMO_UNAVAILABLE_DAYS = setOf(10, 11, 17, 18, 24, 25)
 
+/**
+ * UI State for the complex booking form.
+ * Contains both catalog data (categories, stylists) and user-entered form data.
+ */
 data class BookingFormUiState(
     val isLoadingCatalog: Boolean = true,
     val categories: List<Category> = emptyList(),
     val stylesForCategory: List<String> = emptyList(),
     val employees: List<User> = emptyList(),
-
+    
+    // Personal details
     val name: String = "",
     val surname: String = "",
     val contact: String = "",
 
+    // Selection state
     val selectedCategoryId: String? = null,
     val selectedStyle: String? = null,
     val cost: Double = 0.0,
@@ -42,7 +48,7 @@ data class BookingFormUiState(
 
     val selectedEmployeeId: String? = null,
 
-    val bookingType: String = "Outcall",
+    val bookingType: String = "Outcall", // "Incall" or "Outcall"
     val location: String = "",
 
     val viewMonth: YearMonth = YearMonth.now(),
@@ -51,6 +57,7 @@ data class BookingFormUiState(
 
     val notes: String = "",
 
+    // Form status
     val editingBookingId: String? = null,
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
@@ -71,6 +78,7 @@ class BookingFormViewModel(
     private val catalogJob: Job
 
     init {
+        // Fetch necessary data (services, employees) as soon as the VM is created
         catalogJob = viewModelScope.launch { loadCatalogInternal() }
     }
 
@@ -188,10 +196,15 @@ class BookingFormViewModel(
             return state.cost - (state.cost * state.discount / 100)
         }
 
+    /**
+     * Validates and saves the booking to Firestore.
+     * Handles both new bookings and updates to existing ones.
+     */
     fun submit() {
         val state = _uiState.value
         val uid = auth.currentUser?.uid
 
+        // Basic validation
         when {
             uid == null -> { _uiState.value = state.copy(errorMessage = "Please log in to book an appointment."); return }
             state.selectedCategoryId == null -> { _uiState.value = state.copy(errorMessage = "Please select a service category."); return }
@@ -231,12 +244,14 @@ class BookingFormViewModel(
         viewModelScope.launch {
             try {
                 if (state.editingBookingId != null) {
+                    // Update existing booking status back to 'pending' if rescheduled
                     bookingRepository.updateBooking(state.editingBookingId, state.selectedEmployeeId!!, data + ("status" to "pending"))
                 } else {
                     bookingRepository.addBooking(uid!!, state.selectedEmployeeId!!, data)
                 }
                 _uiState.value = _uiState.value.copy(isSubmitting = false, submitted = true)
             } catch (e: SlotUnavailableException) {
+                // Specific error for double-booking prevention
                 _uiState.value = _uiState.value.copy(
                     isSubmitting = false,
                     errorMessage = "That time slot was just taken — please choose a different time."

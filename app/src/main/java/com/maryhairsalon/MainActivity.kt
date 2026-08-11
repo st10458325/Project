@@ -49,6 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        // Request notification permissions for Android 13+ (Tiramisu)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
@@ -59,10 +60,13 @@ class MainActivity : ComponentActivity() {
         setContent {
             MaryHairSalonTheme {
                 val rootNavController = rememberNavController()
+                
+                // Determine initial screen based on whether a user is already authenticated
                 val startDestination =
                     if (FirebaseAuth.getInstance().currentUser != null) "loading" else "login"
 
                 NavHost(rootNavController, startDestination = startDestination) {
+                    // Intermediate screen to fetch user profile and route to the correct dashboard
                     composable("loading") {
                         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                             CircularProgressIndicator()
@@ -71,12 +75,15 @@ class MainActivity : ComponentActivity() {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid
                             Log.d("MainActivity", "Loading screen: checking role for uid=$uid")
                             if (uid != null) {
+                                // Fetch role (customer, employee, manager) from Firestore
                                 val role = AuthRepository().getUserRole(uid)
                                 Log.d("MainActivity", "Routing decision: role=$role")
 
+                                // Register FCM token for push notifications
                                 runCatching { NotificationRepository().registerCurrentDevice(uid) }
                                     .onFailure { Log.e("MainActivity", "Failed to register FCM token", it) }
 
+                                // Route to role-specific entry point
                                 val dest = when (role) {
                                     "employee" -> "employee_main"
                                     "manager" -> "manager_main"
@@ -103,6 +110,7 @@ class MainActivity : ComponentActivity() {
                             onGoToLogin = { rootNavController.popBackStack() }
                         )
                     }
+                    // Primary customer navigation graph
                     composable("main") {
                         MainScreen(
                             onLogout = {
@@ -111,6 +119,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                    // Entry point for stylists
                     composable("employee_main") {
                         EmployeeMainScreen(
                             onLogout = {
@@ -119,6 +128,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     }
+                    // Entry point for salon management
                     composable("manager_main") {
                         ManagerMainScreen(
                             onLogout = {
@@ -148,6 +158,9 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Main customer interface featuring bottom navigation and a side drawer.
+ */
 @Composable
 private fun MainScreen(onLogout: () -> Unit) {
     val tabNavController = rememberNavController()
@@ -156,6 +169,7 @@ private fun MainScreen(onLogout: () -> Unit) {
     val authViewModel: AuthViewModel = viewModel()
     val authUiState by authViewModel.uiState.collectAsState()
 
+    // Helper function for navigating between main tabs while preserving state
     fun navigateToTab(route: String) {
         tabNavController.navigate(route) {
             popUpTo(tabNavController.graph.findStartDestination().id) { saveState = true }
@@ -174,6 +188,7 @@ private fun MainScreen(onLogout: () -> Unit) {
                 val backStackEntry by tabNavController.currentBackStackEntryAsState()
                 val currentRoute = backStackEntry?.destination?.route
 
+                // Only show bottom navigation on the main top-level tabs
                 if (currentRoute == "services" || currentRoute == "about" || currentRoute == "bookings") {
                     NavigationBar(
                         containerColor = BackgroundDeep,
@@ -226,6 +241,7 @@ private fun MainScreen(onLogout: () -> Unit) {
                 composable("services") {
                     ServicesScreen(
                         onBookNow = { service ->
+                            // Prefill the booking form with service details
                             tabNavController.navigate(
                                 "booking?categoryId=${service.category}&style=${service.title}&price=${service.price}"
                             )
@@ -243,6 +259,7 @@ private fun MainScreen(onLogout: () -> Unit) {
                         onMenuClick = { scope.launch { drawerState.open() } }
                     )
                 }
+                // Combined route for new bookings and rescheduling existing ones
                 composable(
                     route = "booking?categoryId={categoryId}&style={style}&price={price}&bookingId={bookingId}",
                     arguments = listOf(

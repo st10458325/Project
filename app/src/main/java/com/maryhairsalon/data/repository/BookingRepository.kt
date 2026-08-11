@@ -12,11 +12,20 @@ import kotlinx.coroutines.tasks.await
 /** Thrown when a transaction finds the requested employee/date/time slot already taken. */
 class SlotUnavailableException(message: String) : Exception(message)
 
+/**
+ * Handles all Firestore operations related to salon bookings.
+ * Uses transactions to ensure that two customers cannot book the same stylist at the same time.
+ */
 class BookingRepository(
     private val db: FirebaseFirestore = FirebaseFirestore.getInstance()
 ) {
+    // Unique ID for a booking slot to prevent double-booking at the database level
     private fun slotId(employeeId: String, date: String, time: String) = "${employeeId}_${date}_${time}"
 
+    /**
+     * Real-time stream of bookings for a specific customer.
+     * Sorts by status (pending first) and then by date descending.
+     */
     fun observeBookings(uid: String): Flow<Result<List<Booking>>> = callbackFlow {
         Log.d("BookingRepo", "Starting listener for uid: $uid")
         val statusOrder = mapOf("pending" to 0, "upcoming" to 1, "completed" to 2, "cancelled" to 3)
@@ -63,7 +72,12 @@ class BookingRepository(
         return snapshot.toObject(Booking::class.java)
     }
 
-    /** New booking: claims the slot and creates the booking atomically. Throws SlotUnavailableException if taken. */
+    /**
+     * Atomically creates a new booking.
+     * 1. Checks if the specific stylist/date/time slot is already taken in 'bookingSlots' collection.
+     * 2. If free, creates the booking document and the slot document in a single transaction.
+     * Throws [SlotUnavailableException] if the slot is already occupied.
+     */
     suspend fun addBooking(uid: String, employeeId: String, data: Map<String, Any?>): String {
         val date = data["date"] as? String ?: ""
         val time = data["time"] as? String ?: ""
@@ -97,7 +111,10 @@ class BookingRepository(
         return bookingRef.id
     }
 
-    /** Reschedule: releases the old slot (if the date/time/employee actually changed) and claims the new one. */
+    /**
+     * Updates an existing booking (e.g., rescheduling).
+     * If the date, time, or stylist has changed, it releases the old slot and claims the new one.
+     */
     suspend fun updateBooking(bookingId: String, employeeId: String, data: Map<String, Any?>) {
         val newDate = data["date"] as? String ?: ""
         val newTime = data["time"] as? String ?: ""
