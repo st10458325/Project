@@ -95,6 +95,9 @@ fun AboutScreen(
                         Text("The Stylists", style = MaterialTheme.typography.displayLarge, color = Color.White, textAlign = TextAlign.Center)
                     }
                 }
+                item {
+                    TipOfTheDayCard(tip = uiState.tipOfTheDay, isLoading = uiState.isLoadingTip)
+                }
                 items(uiState.stylists, key = { it.id }) { stylist ->
                     StylistCard(stylist)
                 }
@@ -146,5 +149,21 @@ private fun StylistCard(user: User) {
         }
         Spacer(Modifier.height(6.dp))
         Text(user.name, style = MaterialTheme.typography.titleLarge, color = Color.White)
+    }
+}
+
+@Composable
+private fun TipOfTheDayCard(tip: String?, isLoading: Boolean) {
+    if (isLoading || tip == null) return
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(SurfaceLighter)
+            .padding(16.dp)
+    ) {
+        Text("TIP OF THE DAY", style = MaterialTheme.typography.labelSmall, color = AccentAmber, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        Text(tip, style = MaterialTheme.typography.bodyMedium, color = Color.White)
     }
 }

@@ -138,6 +138,7 @@ fun BookingFormScreen(
             BookingCalendar(
                 viewMonth = uiState.viewMonth,
                 selectedDate = uiState.selectedDate,
+                publicHolidays = uiState.publicHolidays,
                 onPrev = viewModel::goToPreviousMonth,
                 onNext = viewModel::goToNextMonth,
                 onSelectDate = viewModel::onDateSelected
@@ -316,6 +317,7 @@ private fun BookingTypeRow(selected: String, onSelect: (String) -> Unit) {
 private fun BookingCalendar(
     viewMonth: YearMonth,
     selectedDate: LocalDate?,
+    publicHolidays: Map<LocalDate, String>,
     onPrev: () -> Unit,
     onNext: () -> Unit,
     onSelectDate: (LocalDate) -> Unit
@@ -368,7 +370,7 @@ private fun BookingCalendar(
                     Box(Modifier.size(40.dp))
                 } else {
                     val isPast = date.isBefore(today)
-                    val isUnavailable = DEMO_UNAVAILABLE_DAYS.contains(date.dayOfMonth)
+                    val isUnavailable = publicHolidays.containsKey(date)
                     val isSelected = date == selectedDate
                     val isAvailable = !isPast && !isUnavailable
 
@@ -397,6 +399,17 @@ private fun BookingCalendar(
                     }
                 }
             }
+        }
+
+        val holidaysThisMonth = publicHolidays.filterKeys { YearMonth.from(it) == viewMonth }
+        if (holidaysThisMonth.isNotEmpty()) {
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Closed for: " + holidaysThisMonth.entries.sortedBy { it.key }
+                    .joinToString(", ") { "${it.value} (${it.key.dayOfMonth})" },
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }
@@ -439,6 +452,11 @@ private fun BookingSummaryCard(uiState: BookingFormUiState, total: Double) {
             SummaryRow("Booking Type", uiState.bookingType)
             SummaryRow("Date", uiState.selectedDate?.toString() ?: "-")
             SummaryRow("Time", uiState.selectedTime ?: "-")
+            if (uiState.isLoadingWeather) {
+                SummaryRow("Weather", "Checking forecast…")
+            } else uiState.weatherForecast?.let { forecast ->
+                SummaryRow("Weather", "${forecast.description}, ${forecast.minTemp.toInt()}–${forecast.maxTemp.toInt()}°C")
+            }
             SummaryRow("Location", if (uiState.bookingType == "Outcall") uiState.location.ifBlank { "-" } else "N/A")
             HorizontalDivider(Modifier.padding(vertical = 6.dp))
             SummaryRow("Cost (ZAR)", "R%.2f".format(uiState.cost))

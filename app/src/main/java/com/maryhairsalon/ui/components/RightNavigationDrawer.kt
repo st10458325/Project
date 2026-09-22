@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -23,11 +24,14 @@ import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
 import com.maryhairsalon.ui.theme.SurfaceLighter
 import com.maryhairsalon.ui.theme.TextMuted
+import androidx.compose.ui.res.stringResource
+import com.maryhairsalon.R
 
 @Composable
 fun RightNavigationDrawer(
     drawerState: DrawerState,
     user: User?,
+    onSettingsClick: () -> Unit,
     onLogout: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -65,13 +69,26 @@ fun RightNavigationDrawer(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = TextMuted
                             )
-                            
+
                             Spacer(Modifier.weight(1f))
-                            
+
+                            OutlinedButton(
+                                onClick = onSettingsClick,
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentAmber),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Icon(Icons.Default.Settings, contentDescription = null)
+                                Spacer(Modifier.width(8.dp))
+                                Text(stringResource(R.string.drawer_settings), fontWeight = FontWeight.Bold)
+                            }
+
+                            Spacer(Modifier.height(12.dp))
+
                             HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
-                            
+
                             Spacer(Modifier.height(16.dp))
-                            
+
                             Button(
                                 onClick = onLogout,
                                 modifier = Modifier.fillMaxWidth(),
@@ -83,7 +100,7 @@ fun RightNavigationDrawer(
                             ) {
                                 Icon(Icons.Default.Logout, contentDescription = null)
                                 Spacer(Modifier.width(8.dp))
-                                Text("Logout", fontWeight = FontWeight.Bold)
+                                Text(stringResource(R.string.drawer_logout), fontWeight = FontWeight.Bold)
                             }
                         }
                     }

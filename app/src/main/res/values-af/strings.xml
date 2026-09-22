@@ -1,0 +1,77 @@
+<resources>
+
+    <string name="action_continue_with_google">Gaan voort met Google</string>
+    <string name="divider_or">OF</string>
+
+    <string name="action_save">Stoor</string>
+    <string name="action_cancel">Kanselleer</string>
+    <string name="action_back">Terug</string>
+
+    <string name="login_title">Welkom Terug</string>
+    <string name="login_subtitle">Meld aan om jou besprekings te bestuur.</string>
+    <string name="label_email">E-pos</string>
+    <string name="label_password">Wagwoord</string>
+    <string name="action_login">Meld Aan</string>
+    <string name="login_no_account">Nuut by Mary Hair Salon? Skep \'n rekening</string>
+
+    <string name="signup_title">Skep Rekening</string>
+    <string name="signup_subtitle">Sluit vandag by Mary Hair Salon aan.</string>
+    <string name="label_first_name">Voornaam</string>
+    <string name="label_surname">Van</string>
+    <string name="label_email_address">E-posadres</string>
+    <string name="label_contact_number">Kontaknommer</string>
+    <string name="label_confirm_password">Bevestig Wagwoord</string>
+    <string name="action_signup">Registreer</string>
+    <string name="signup_have_account">Het jy reeds \'n rekening? Meld Aan</string>
+    <string name="error_passwords_dont_match">Wagwoorde stem nie ooreen nie.</string>
+
+    <string name="drawer_settings">Instellings</string>
+    <string name="drawer_logout">Meld Af</string>
+
+    <string name="nav_services">Dienste</string>
+    <string name="nav_about">Oor Ons</string>
+    <string name="nav_bookings">Besprekings</string>
+    <string name="nav_schedule">My Skedule</string>
+    <string name="nav_profile">Profiel</string>
+    <string name="nav_staff">Personeel</string>
+    <string name="nav_catalog">Katalogus</string>
+
+    <string name="settings_title">Instellings</string>
+    <string name="settings_profile_section">Profiel</string>
+    <string name="settings_name_locked_note">Jou naam is aan jou besprekings en skedule gekoppel, so dit kan nie hier verander word nie. Vra \'n bestuurder as dit moet verander.</string>
+    <string name="action_save_profile">Stoor Profiel</string>
+    <string name="settings_password_section">Verander Wagwoord</string>
+    <string name="label_current_password">Huidige Wagwoord</string>
+    <string name="label_new_password">Nuwe Wagwoord</string>
+    <string name="label_confirm_new_password">Bevestig Nuwe Wagwoord</string>
+    <string name="action_change_password">Verander Wagwoord</string>
+    <string name="settings_language_section">Taal</string>
+    <string name="settings_language_note">Kies die taal wat jy vir die app wil gebruik.</string>
+    <string name="profile_updated">Profiel opgedateer.</string>
+    <string name="password_changed">Wagwoord verander.</string>
+
+    <string name="language_english">English</string>
+    <string name="language_afrikaans">Afrikaans</string>
+    <string name="language_zulu">isiZulu</string>
+
+    <string name="status_all">Alle</string>
+    <string name="status_pending">Hangende</string>
+    <string name="status_upcoming">Aanstaande</string>
+    <string name="status_completed">Voltooi</string>
+    <string name="status_cancelled">Gekanselleer</string>
+    <string name="status_cancelling">Kanselleer tans…</string>
+    <string name="status_pending_sync">Wag om te sinkroniseer</string>
+
+    <string name="bookings_title">My Besprekings</string>
+    <string name="bookings_subtitle">Al jou afsprake, op een plek.</string>
+    <string name="bookings_account_label">Jou Rekening</string>
+    <string name="bookings_empty">Nog geen besprekings nie — sodra jy \'n diens bespreek, sal dit hier verskyn.</string>
+    <string name="bookings_error">Iets het verkeerd geloop met die laai van jou besprekings. Gaan asseblief jou verbinding na.</string>
+    <string name="bookings_offline_banner">Jy is vanlyn — dit wys jou laaste gesinkroniseerde besprekings. Kansellasies sal outomaties sinkroniseer.</string>
+    <string name="action_reschedule">Herskeduleer</string>
+    <string name="cancel_dialog_title">Kanselleer hierdie bespreking?</string>
+    <string name="cancel_dialog_body_online">Dit sal die afspraak as gekanselleer merk.</string>
+    <string name="cancel_dialog_body_offline">Jy is vanlyn — dit sal outomaties gekanselleer word sodra jy weer aanlyn is.</string>
+    <string name="action_confirm_cancel">Kanselleer bespreking</string>
+    <string name="action_keep_booking">Nee, hou dit</string>
+</resources>

@@ -4,10 +4,11 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import androidx.activity.ComponentActivity
+import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -45,7 +46,14 @@ import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Group
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import com.maryhairsalon.ui.customer.about.AboutScreen
-class MainActivity : ComponentActivity() {
+import com.maryhairsalon.ui.settings.SettingsScreen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withTimeoutOrNull
+import androidx.compose.ui.res.stringResource
+import com.maryhairsalon.R
+import com.maryhairsalon.ui.components.VerifyEmailBanner
+class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
@@ -75,15 +83,25 @@ class MainActivity : ComponentActivity() {
                             val uid = FirebaseAuth.getInstance().currentUser?.uid
                             Log.d("MainActivity", "Loading screen: checking role for uid=$uid")
                             if (uid != null) {
-                                // Fetch role (customer, employee, manager) from Firestore
-                                val role = AuthRepository().getUserRole(uid)
+                                // Never let a slow/absent network hold the launch screen
+                                // hostage — if this takes too long, just proceed as a
+                                // customer rather than freeze on the spinner forever.
+                                val role = withTimeoutOrNull(4000) {
+                                    AuthRepository().getUserRole(uid)
+                                } ?: "customer"
                                 Log.d("MainActivity", "Routing decision: role=$role")
 
-                                // Register FCM token for push notifications
-                                runCatching { NotificationRepository().registerCurrentDevice(uid) }
-                                    .onFailure { Log.e("MainActivity", "Failed to register FCM token", it) }
+                                // Fire-and-forget: fetching an FCM token needs a real
+                                // network round-trip with no offline fallback, so it must
+                                // never block navigation. If it fails or times out, we
+                                // just try again on the next launch.
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    withTimeoutOrNull(5000) {
+                                        runCatching { NotificationRepository().registerCurrentDevice(uid) }
+                                            .onFailure { Log.e("MainActivity", "Failed to register FCM token", it) }
+                                    }
+                                }
 
-                                // Route to role-specific entry point
                                 val dest = when (role) {
                                     "employee" -> "employee_main"
                                     "manager" -> "manager_main"
@@ -181,6 +199,10 @@ private fun MainScreen(onLogout: () -> Unit) {
     RightNavigationDrawer(
         drawerState = drawerState,
         user = authUiState.userProfile,
+        onSettingsClick = {
+            scope.launch { drawerState.close() }
+            tabNavController.navigate("settings")
+        },
         onLogout = onLogout
     ) {
         Scaffold(
@@ -200,7 +222,7 @@ private fun MainScreen(onLogout: () -> Unit) {
                             selected = currentRoute == "services",
                             onClick = { navigateToTab("services") },
                             icon = { Icon(Icons.Default.ContentCut, contentDescription = null) },
-                            label = { Text("Services") },
+                            label = { Text(stringResource(R.string.nav_services)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                                 unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
@@ -211,7 +233,7 @@ private fun MainScreen(onLogout: () -> Unit) {
                             selected = currentRoute == "about",
                             onClick = { navigateToTab("about") },
                             icon = { Icon(Icons.Default.Group, contentDescription = null) },
-                            label = { Text("About") },
+                            label = { Text(stringResource(R.string.nav_about)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                                 unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
@@ -222,7 +244,7 @@ private fun MainScreen(onLogout: () -> Unit) {
                             selected = currentRoute == "bookings",
                             onClick = { navigateToTab("bookings") },
                             icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                            label = { Text("Bookings") },
+                            label = { Text(stringResource(R.string.nav_bookings)) },
                             colors = NavigationBarItemDefaults.colors(
                                 selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                                 unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
@@ -233,50 +255,63 @@ private fun MainScreen(onLogout: () -> Unit) {
                 }
             }
         ) { padding ->
-            NavHost(
-                tabNavController,
-                startDestination = "services",
-                modifier = Modifier.padding(padding)
-            ) {
-                composable("services") {
-                    ServicesScreen(
-                        onBookNow = { service ->
-                            // Prefill the booking form with service details
-                            tabNavController.navigate(
-                                "booking?categoryId=${service.category}&style=${service.title}&price=${service.price}"
-                            )
-                        },
-                        onMenuClick = { scope.launch { drawerState.open() } }
+            Column(modifier = Modifier.padding(padding).fillMaxSize()) {
+                if (!authUiState.isEmailVerified) {
+                    VerifyEmailBanner(
+                        isSending = authUiState.isSendingVerification,
+                        message = authUiState.verificationMessage,
+                        onResend = authViewModel::resendVerificationEmail,
+                        onRefresh = authViewModel::refreshVerificationStatus
                     )
                 }
-                composable("about") {
-                    AboutScreen(onMenuClick = { scope.launch { drawerState.open() } })
-                }
-                composable("bookings") {
-                    BookingsScreen(
-                        onLogout = onLogout,
-                        onReschedule = { booking -> tabNavController.navigate("booking?bookingId=${booking.id}") },
-                        onMenuClick = { scope.launch { drawerState.open() } }
-                    )
-                }
-                // Combined route for new bookings and rescheduling existing ones
-                composable(
-                    route = "booking?categoryId={categoryId}&style={style}&price={price}&bookingId={bookingId}",
-                    arguments = listOf(
-                        navArgument("categoryId") { type = NavType.StringType; nullable = true },
-                        navArgument("style") { type = NavType.StringType; nullable = true },
-                        navArgument("price") { type = NavType.StringType; nullable = true },
-                        navArgument("bookingId") { type = NavType.StringType; nullable = true }
-                    )
-                ) { backStackEntry ->
-                    BookingFormScreen(
-                        prefillCategoryId = backStackEntry.arguments?.getString("categoryId"),
-                        prefillStyle = backStackEntry.arguments?.getString("style"),
-                        prefillPrice = backStackEntry.arguments?.getString("price"),
-                        prefillBookingId = backStackEntry.arguments?.getString("bookingId"),
-                        onDone = { navigateToTab("bookings") },
-                        onCancel = { tabNavController.popBackStack() },
-                    )
+                NavHost(
+                    tabNavController,
+                    startDestination = "services",
+                    modifier = Modifier.weight(1f)
+                ) {
+                    composable("services") {
+                        ServicesScreen(
+                            onBookNow = { service ->
+                                // Prefill the booking form with service details
+                                tabNavController.navigate(
+                                    "booking?categoryId=${service.category}&style=${service.title}&price=${service.price}"
+                                )
+                            },
+                            onMenuClick = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    composable("about") {
+                        AboutScreen(onMenuClick = { scope.launch { drawerState.open() } })
+                    }
+                    composable("bookings") {
+                        BookingsScreen(
+                            onLogout = onLogout,
+                            onReschedule = { booking -> tabNavController.navigate("booking?bookingId=${booking.id}") },
+                            onMenuClick = { scope.launch { drawerState.open() } }
+                        )
+                    }
+                    // Combined route for new bookings and rescheduling existing ones
+                    composable(
+                        route = "booking?categoryId={categoryId}&style={style}&price={price}&bookingId={bookingId}",
+                        arguments = listOf(
+                            navArgument("categoryId") { type = NavType.StringType; nullable = true },
+                            navArgument("style") { type = NavType.StringType; nullable = true },
+                            navArgument("price") { type = NavType.StringType; nullable = true },
+                            navArgument("bookingId") { type = NavType.StringType; nullable = true }
+                        )
+                    ) { backStackEntry ->
+                        BookingFormScreen(
+                            prefillCategoryId = backStackEntry.arguments?.getString("categoryId"),
+                            prefillStyle = backStackEntry.arguments?.getString("style"),
+                            prefillPrice = backStackEntry.arguments?.getString("price"),
+                            prefillBookingId = backStackEntry.arguments?.getString("bookingId"),
+                            onDone = { navigateToTab("bookings") },
+                            onCancel = { tabNavController.popBackStack() },
+                        )
+                    }
+                    composable("settings") {
+                        SettingsScreen(onBack = { tabNavController.popBackStack() })
+                    }
                 }
             }
         }
@@ -284,6 +319,7 @@ private fun MainScreen(onLogout: () -> Unit) {
 }
 @Composable
 private fun EmployeeMainScreen(onLogout: () -> Unit) {
+    val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val authViewModel: AuthViewModel = viewModel()
@@ -292,17 +328,29 @@ private fun EmployeeMainScreen(onLogout: () -> Unit) {
     RightNavigationDrawer(
         drawerState = drawerState,
         user = authUiState.userProfile,
+        onSettingsClick = {
+            scope.launch { drawerState.close() }
+            navController.navigate("settings")
+        },
         onLogout = onLogout
     ) {
-        EmployeeDashboardScreen(
-            onLogout = onLogout,
-            onMenuClick = { scope.launch { drawerState.open() } }
-        )
+        NavHost(navController, startDestination = "dashboard") {
+            composable("dashboard") {
+                EmployeeDashboardScreen(
+                    onLogout = onLogout,
+                    onMenuClick = { scope.launch { drawerState.open() } }
+                )
+            }
+            composable("settings") {
+                SettingsScreen(onBack = { navController.popBackStack() })
+            }
+        }
     }
 }
 
 @Composable
 private fun ManagerMainScreen(onLogout: () -> Unit) {
+    val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val authViewModel: AuthViewModel = viewModel()
@@ -311,11 +359,22 @@ private fun ManagerMainScreen(onLogout: () -> Unit) {
     RightNavigationDrawer(
         drawerState = drawerState,
         user = authUiState.userProfile,
+        onSettingsClick = {
+            scope.launch { drawerState.close() }
+            navController.navigate("settings")
+        },
         onLogout = onLogout
     ) {
-        ManagerDashboardScreen(
-            onLogout = onLogout,
-            onMenuClick = { scope.launch { drawerState.open() } }
-        )
+        NavHost(navController, startDestination = "dashboard") {
+            composable("dashboard") {
+                ManagerDashboardScreen(
+                    onLogout = onLogout,
+                    onMenuClick = { scope.launch { drawerState.open() } }
+                )
+            }
+            composable("settings") {
+                SettingsScreen(onBack = { navController.popBackStack() })
+            }
+        }
     }
 }

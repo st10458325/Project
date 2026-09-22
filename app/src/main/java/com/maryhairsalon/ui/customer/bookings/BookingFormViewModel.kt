@@ -6,8 +6,11 @@ import com.google.firebase.auth.FirebaseAuth
 import com.maryhairsalon.data.models.*
 import com.maryhairsalon.data.repository.BookingRepository
 import com.maryhairsalon.data.repository.CatalogRepository
+import com.maryhairsalon.data.repository.DayForecast
 import com.maryhairsalon.data.repository.EmployeeRepository
+import com.maryhairsalon.data.repository.HolidayRepository
 import com.maryhairsalon.data.repository.SlotUnavailableException
+import com.maryhairsalon.data.repository.WeatherRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,8 +26,6 @@ val TIME_SLOTS = listOf(
     "14:00","15:00","16:00","17:00","18:00","19:00"
 )
 
-val DEMO_UNAVAILABLE_DAYS = setOf(10, 11, 17, 18, 24, 25)
-
 /**
  * UI State for the complex booking form.
  * Contains both catalog data (categories, stylists) and user-entered form data.
@@ -34,7 +35,7 @@ data class BookingFormUiState(
     val categories: List<Category> = emptyList(),
     val stylesForCategory: List<String> = emptyList(),
     val employees: List<User> = emptyList(),
-    
+
     // Personal details
     val name: String = "",
     val surname: String = "",
@@ -57,6 +58,14 @@ data class BookingFormUiState(
 
     val notes: String = "",
 
+    // Public holidays for the selectable range, date -> holiday name.
+    // Sourced from Nager.Date; days present here are blocked out on the calendar.
+    val publicHolidays: Map<LocalDate, String> = emptyMap(),
+
+    // Weather forecast for the selected date (only available ~16 days out).
+    val weatherForecast: DayForecast? = null,
+    val isLoadingWeather: Boolean = false,
+
     // Form status
     val editingBookingId: String? = null,
     val isSubmitting: Boolean = false,
@@ -68,6 +77,8 @@ class BookingFormViewModel(
     private val catalogRepository: CatalogRepository = CatalogRepository(),
     private val employeeRepository: EmployeeRepository = EmployeeRepository(),
     private val bookingRepository: BookingRepository = BookingRepository(),
+    private val holidayRepository: HolidayRepository = HolidayRepository(),
+    private val weatherRepository: WeatherRepository = WeatherRepository(),
     private val auth: FirebaseAuth = FirebaseAuth.getInstance()
 ) : ViewModel() {
 
@@ -76,10 +87,20 @@ class BookingFormViewModel(
 
     private var servicesByCategory: Map<String, List<Service>> = emptyMap()
     private val catalogJob: Job
+    private var weatherJob: Job? = null
 
     init {
-        // Fetch necessary data (services, employees) as soon as the VM is created
         catalogJob = viewModelScope.launch { loadCatalogInternal() }
+        loadPublicHolidays()
+    }
+
+    private fun loadPublicHolidays() {
+        viewModelScope.launch {
+            val thisYear = LocalDate.now().year
+            // Cover this year and next, since the calendar can be paged forward past December.
+            val holidays = holidayRepository.getHolidays(thisYear) + holidayRepository.getHolidays(thisYear + 1)
+            _uiState.value = _uiState.value.copy(publicHolidays = holidays)
+        }
     }
 
     private suspend fun loadCatalogInternal() {
@@ -134,7 +155,6 @@ class BookingFormViewModel(
                     return@launch
                 }
                 val styles = servicesByCategory[booking.category]?.map { it.title } ?: emptyList()
-                val employeeId = _uiState.value.employees.find { it.name == booking.employee }?.id
                 val parsedDate = runCatching { LocalDate.parse(booking.date) }.getOrNull()
                 val (cost, discount) = resolvePricing(booking.category, booking.service)
 
@@ -148,7 +168,7 @@ class BookingFormViewModel(
                     selectedStyle = booking.service,
                     cost = cost,
                     discount = discount,
-                    selectedEmployeeId = employeeId ?: _uiState.value.selectedEmployeeId,
+                    selectedEmployeeId = booking.employeeId.ifBlank { _uiState.value.selectedEmployeeId },
                     bookingType = booking.type.ifBlank { "Outcall" },
                     location = booking.location,
                     selectedDate = parsedDate,
@@ -156,6 +176,7 @@ class BookingFormViewModel(
                     selectedTime = booking.time,
                     notes = booking.notes
                 )
+                parsedDate?.let { fetchWeatherFor(it) }
             } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(errorMessage = "Could not load that booking for editing.")
             }
@@ -185,7 +206,21 @@ class BookingFormViewModel(
     fun onLocationChange(v: String) { _uiState.value = _uiState.value.copy(location = v) }
     fun onEmployeeSelected(id: String) { _uiState.value = _uiState.value.copy(selectedEmployeeId = id) }
     fun onBookingTypeSelected(type: String) { _uiState.value = _uiState.value.copy(bookingType = type) }
-    fun onDateSelected(date: LocalDate) { _uiState.value = _uiState.value.copy(selectedDate = date) }
+
+    fun onDateSelected(date: LocalDate) {
+        _uiState.value = _uiState.value.copy(selectedDate = date)
+        fetchWeatherFor(date)
+    }
+
+    private fun fetchWeatherFor(date: LocalDate) {
+        weatherJob?.cancel()
+        _uiState.value = _uiState.value.copy(weatherForecast = null, isLoadingWeather = true)
+        weatherJob = viewModelScope.launch {
+            val forecast = weatherRepository.getForecastFor(date)
+            _uiState.value = _uiState.value.copy(weatherForecast = forecast, isLoadingWeather = false)
+        }
+    }
+
     fun onTimeSelected(time: String) { _uiState.value = _uiState.value.copy(selectedTime = time) }
     fun goToPreviousMonth() { _uiState.value = _uiState.value.copy(viewMonth = _uiState.value.viewMonth.minusMonths(1)) }
     fun goToNextMonth() { _uiState.value = _uiState.value.copy(viewMonth = _uiState.value.viewMonth.plusMonths(1)) }
@@ -204,9 +239,9 @@ class BookingFormViewModel(
         val state = _uiState.value
         val uid = auth.currentUser?.uid
 
-        // Basic validation
         when {
             uid == null -> { _uiState.value = state.copy(errorMessage = "Please log in to book an appointment."); return }
+            auth.currentUser?.isEmailVerified != true -> { _uiState.value = state.copy(errorMessage = "Please verify your email before booking — check the banner at the top of the app."); return }
             state.selectedCategoryId == null -> { _uiState.value = state.copy(errorMessage = "Please select a service category."); return }
             state.selectedStyle == null -> { _uiState.value = state.copy(errorMessage = "Please select a style."); return }
             state.selectedEmployeeId == null -> { _uiState.value = state.copy(errorMessage = "Please select a stylist."); return }
@@ -244,14 +279,16 @@ class BookingFormViewModel(
         viewModelScope.launch {
             try {
                 if (state.editingBookingId != null) {
-                    // Update existing booking status back to 'pending' if rescheduled
-                    bookingRepository.updateBooking(state.editingBookingId, state.selectedEmployeeId!!, data + ("status" to "pending"))
+                    bookingRepository.updateBooking(
+                        state.editingBookingId,
+                        state.selectedEmployeeId!!,
+                        data + mapOf("status" to "pending", "employeeNotified" to false)
+                    )
                 } else {
                     bookingRepository.addBooking(uid!!, state.selectedEmployeeId!!, data)
                 }
                 _uiState.value = _uiState.value.copy(isSubmitting = false, submitted = true)
             } catch (e: SlotUnavailableException) {
-                // Specific error for double-booking prevention
                 _uiState.value = _uiState.value.copy(
                     isSubmitting = false,
                     errorMessage = "That time slot was just taken — please choose a different time."

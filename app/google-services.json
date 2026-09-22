@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "355995364975-inb8er9s3v63bocd35d69aacmc46s8f4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.maryhairsalon.customer",
+            "certificate_hash": "67961733995ecbdc58678c3951512648e2f5ad8e"
+          }
+        },
+        {
           "client_id": "355995364975-5fgvuthe3ifvimsmctag1ddi2hs4pip9.apps.googleusercontent.com",
           "client_type": 3
         }

@@ -17,7 +17,10 @@ data class AuthUiState(
     val errorMessage: String? = null,
     val isLoggedIn: Boolean = false,
     val userRole: String? = null,
-    val userProfile: User? = null
+    val userProfile: User? = null,
+    val isEmailVerified: Boolean = false,
+    val isSendingVerification: Boolean = false,
+    val verificationMessage: String? = null
 )
 
 class AuthViewModel(
@@ -30,7 +33,9 @@ class AuthViewModel(
     init {
         val currentUser = repository.currentUser
         if (currentUser != null) {
+            _uiState.value = _uiState.value.copy(isEmailVerified = currentUser.isEmailVerified)
             fetchUserProfile(currentUser.uid)
+            refreshVerificationStatus()
         }
     }
 
@@ -38,6 +43,26 @@ class AuthViewModel(
         viewModelScope.launch {
             val user = repository.getUser(uid)
             _uiState.value = _uiState.value.copy(userProfile = user)
+        }
+    }
+
+    fun refreshVerificationStatus() {
+        viewModelScope.launch {
+            val verified = repository.refreshEmailVerifiedStatus()
+            _uiState.value = _uiState.value.copy(isEmailVerified = verified)
+        }
+    }
+
+    fun resendVerificationEmail() {
+        _uiState.value = _uiState.value.copy(isSendingVerification = true, verificationMessage = null)
+        viewModelScope.launch {
+            _uiState.value = when (val result = repository.sendEmailVerification()) {
+                is AuthResult.Success -> _uiState.value.copy(
+                    isSendingVerification = false,
+                    verificationMessage = "Verification email sent — check your inbox (and spam folder)."
+                )
+                is AuthResult.Error -> _uiState.value.copy(isSendingVerification = false, verificationMessage = result.message)
+            }
         }
     }
 
@@ -54,8 +79,10 @@ class AuthViewModel(
                     _uiState.value = _uiState.value.copy(
                         isLoading = false,
                         isLoggedIn = true,
-                        userRole = role
+                        userRole = role,
+                        isEmailVerified = result.user.isEmailVerified
                     )
+                    refreshVerificationStatus()
                 }
                 is AuthResult.Error -> {
                     Log.e("AuthVM", "Login error: ${result.message}")
@@ -82,14 +109,38 @@ class AuthViewModel(
             _uiState.value = when (val result = repository.signup(data)) {
                 is AuthResult.Success -> {
                     fetchUserProfile(result.user.uid)
-                    _uiState.value.copy(isLoading = false, isLoggedIn = true)
+                    _uiState.value.copy(isLoading = false, isLoggedIn = true, isEmailVerified = result.user.isEmailVerified)
                 }
                 is AuthResult.Error -> _uiState.value.copy(isLoading = false, errorMessage = result.message)
             }
         }
     }
 
+    fun signInWithGoogle(idToken: String) {
+        _uiState.value = _uiState.value.copy(isLoading = true, errorMessage = null)
+        viewModelScope.launch {
+            when (val result = repository.signInWithGoogle(idToken)) {
+                is AuthResult.Success -> {
+                    val role = repository.getUserRole(result.user.uid)
+                    fetchUserProfile(result.user.uid)
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        isLoggedIn = true,
+                        userRole = role,
+                        isEmailVerified = result.user.isEmailVerified
+                    )
+                }
+                is AuthResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, errorMessage = result.message)
+                }
+            }
+        }
+    }
+
     fun clearError() {
         _uiState.value = _uiState.value.copy(errorMessage = null)
+    }
+    fun setError(message: String) {
+        _uiState.value = _uiState.value.copy(errorMessage = message)
     }
 }

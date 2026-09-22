@@ -21,6 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.maryhairsalon.ui.theme.BackgroundDeep
+import androidx.compose.ui.res.stringResource
+import com.maryhairsalon.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +69,7 @@ fun EmployeeDashboardScreen(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     icon = { Icon(Icons.Default.Assignment, contentDescription = null) },
-                    label = { Text("My Schedule") },
+                    label = { Text(stringResource(R.string.nav_schedule)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                         unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
@@ -78,7 +80,7 @@ fun EmployeeDashboardScreen(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     icon = { Icon(Icons.Default.Person, contentDescription = null) },
-                    label = { Text("Profile") },
+                    label = { Text(stringResource(R.string.nav_profile)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                         unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,

@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.lerp
 import androidx.compose.ui.unit.sp
@@ -29,6 +31,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.maryhairsalon.R
 import com.maryhairsalon.data.models.Booking
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
@@ -44,9 +47,9 @@ fun BookingsScreen(
     viewModel: BookingsViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var pendingCancelId by remember { mutableStateOf<String?>(null) }
+    var confirmCancelBookingId by remember { mutableStateOf<String?>(null) }
     val scrollState = rememberLazyListState()
-    
+
     val headerHeight = 200.dp
     val minHeaderHeight = 80.dp
     val headerHeightPx = with(LocalDensity.current) { headerHeight.toPx() }
@@ -83,7 +86,6 @@ fun BookingsScreen(
                 ),
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        // Crown placeholder
                         Box(
                             modifier = Modifier
                                 .size(32.dp)
@@ -123,13 +125,15 @@ fun BookingsScreen(
                 .padding(padding)
                 .fillMaxSize()
         ) {
-            // Header Section
+            if (uiState.isOffline) {
+                OfflineBanner()
+            }
+
             HeaderSection(
                 height = with(LocalDensity.current) { currentHeaderHeight.value.toDp() },
                 progress = progress.value
             )
 
-            // Filter chips
             FilterSection(
                 activeFilter = uiState.activeFilter,
                 counts = uiState.counts,
@@ -145,7 +149,7 @@ fun BookingsScreen(
                 }
                 uiState.bookings.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
                     Text(
-                        "No bookings yet — once you book a service, it'll show up here.",
+                        stringResource(R.string.bookings_empty),
                         color = TextMuted,
                         modifier = Modifier.padding(32.dp)
                     )
@@ -158,8 +162,9 @@ fun BookingsScreen(
                     items(uiState.bookings, key = { it.id }) { booking ->
                         BookingCard(
                             booking = booking,
+                            isPendingSync = booking.id in uiState.pendingCancelIds,
                             onRescheduleClick = { onReschedule(booking) },
-                            onCancelClick = { pendingCancelId = booking.id }
+                            onCancelClick = { confirmCancelBookingId = booking.id }
                         )
                     }
                 }
@@ -167,20 +172,44 @@ fun BookingsScreen(
         }
     }
 
-    pendingCancelId?.let { id ->
+    confirmCancelBookingId?.let { id ->
         AlertDialog(
-            onDismissRequest = { pendingCancelId = null },
-            title = { Text("Cancel this booking?") },
-            text = { Text("This will mark the appointment as cancelled.") },
+            onDismissRequest = { confirmCancelBookingId = null },
+            title = { Text(stringResource(R.string.cancel_dialog_title)) },
+            text = {
+                Text(
+                    if (uiState.isOffline) stringResource(R.string.cancel_dialog_body_offline)
+                    else stringResource(R.string.cancel_dialog_body_online)
+                )
+            },
             confirmButton = {
                 TextButton(onClick = {
                     viewModel.cancelBooking(id)
-                    pendingCancelId = null
-                }) { Text("Cancel booking") }
+                    confirmCancelBookingId = null
+                }) { Text(stringResource(R.string.action_confirm_cancel)) }
             },
             dismissButton = {
-                TextButton(onClick = { pendingCancelId = null }) { Text("No, keep it") }
+                TextButton(onClick = { confirmCancelBookingId = null }) { Text(stringResource(R.string.action_keep_booking)) }
             }
+        )
+    }
+}
+
+@Composable
+private fun OfflineBanner() {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFF3E2F1F))
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(Icons.Default.WifiOff, contentDescription = null, tint = AccentAmber, modifier = Modifier.size(16.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(
+            stringResource(R.string.bookings_offline_banner),
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.White
         )
     }
 }
@@ -194,7 +223,7 @@ private fun HeaderSection(height: androidx.compose.ui.unit.Dp, progress: Float) 
             .background(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF2D1B14), // Dark brown gradient start
+                        Color(0xFF2D1B14),
                         BackgroundDeep
                     )
                 )
@@ -211,21 +240,21 @@ private fun HeaderSection(height: androidx.compose.ui.unit.Dp, progress: Float) 
         ) {
             if (progress > 0.5f) {
                 Text(
-                    "Your Account",
+                    stringResource(R.string.bookings_account_label),
                     style = MaterialTheme.typography.labelMedium,
                     color = AccentAmber,
                     fontWeight = FontWeight.Bold
                 )
             }
             Text(
-                "My Bookings",
+                stringResource(R.string.bookings_title),
                 style = lerp(MaterialTheme.typography.titleLarge, MaterialTheme.typography.displayLarge, progress),
                 color = Color.White
             )
             if (progress > 0.8f) {
                 Spacer(Modifier.height(8.dp))
                 Text(
-                    "All your appointments, in one place.",
+                    stringResource(R.string.bookings_subtitle),
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextMuted
                 )
@@ -241,12 +270,12 @@ private fun FilterSection(
     onFilterSelected: (String) -> Unit
 ) {
     val statuses = listOf("all", "pending", "upcoming", "completed", "cancelled")
-    
+
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             statuses.take(3).forEach { status ->
                 FilterPill(
-                    label = status.replaceFirstChar { it.uppercase() },
+                    label = filterLabel(status),
                     count = counts[status] ?: 0,
                     selected = activeFilter == status,
                     onClick = { onFilterSelected(status) }
@@ -257,7 +286,7 @@ private fun FilterSection(
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             statuses.drop(3).forEach { status ->
                 FilterPill(
-                    label = status.replaceFirstChar { it.uppercase() },
+                    label = filterLabel(status),
                     count = counts[status] ?: 0,
                     selected = activeFilter == status,
                     onClick = { onFilterSelected(status) }
@@ -265,6 +294,16 @@ private fun FilterSection(
             }
         }
     }
+}
+
+@Composable
+private fun filterLabel(status: String): String = when (status) {
+    "all" -> stringResource(R.string.status_all)
+    "pending" -> stringResource(R.string.status_pending)
+    "upcoming" -> stringResource(R.string.status_upcoming)
+    "completed" -> stringResource(R.string.status_completed)
+    "cancelled" -> stringResource(R.string.status_cancelled)
+    else -> status.replaceFirstChar { it.uppercase() }
 }
 
 @Composable
@@ -312,7 +351,12 @@ private fun FilterPill(
 }
 
 @Composable
-private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCancelClick: () -> Unit) {
+private fun BookingCard(
+    booking: Booking,
+    isPendingSync: Boolean,
+    onRescheduleClick: () -> Unit,
+    onCancelClick: () -> Unit
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -329,16 +373,17 @@ private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCance
                     style = MaterialTheme.typography.titleLarge,
                     color = Color.White
                 )
-                
-                // Status badge
-                val badgeColor = when (booking.status.lowercase()) {
-                    "cancelled" -> Color(0xFF3E1F1F)
-                    "completed" -> Color(0xFF1F3E2E)
+
+                val badgeColor = when {
+                    isPendingSync -> Color.White.copy(alpha = 0.1f)
+                    booking.status.lowercase() == "cancelled" -> Color(0xFF3E1F1F)
+                    booking.status.lowercase() == "completed" -> Color(0xFF1F3E2E)
                     else -> Color.White.copy(alpha = 0.1f)
                 }
-                val badgeTextColor = when (booking.status.lowercase()) {
-                    "cancelled" -> Color(0xFFEF4444)
-                    "completed" -> Color(0xFF10B981)
+                val badgeTextColor = when {
+                    isPendingSync -> AccentAmber
+                    booking.status.lowercase() == "cancelled" -> Color(0xFFEF4444)
+                    booking.status.lowercase() == "completed" -> Color(0xFF10B981)
                     else -> TextMuted
                 }
 
@@ -349,16 +394,16 @@ private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCance
                         .padding(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     Text(
-                        statusLabel(booking.status),
+                        if (isPendingSync) stringResource(R.string.status_cancelling) else statusLabel(booking.status),
                         style = MaterialTheme.typography.labelSmall,
                         color = badgeTextColor,
                         fontWeight = FontWeight.Bold
                     )
                 }
             }
-            
+
             Spacer(Modifier.height(16.dp))
-            
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Default.CalendarMonth,
@@ -386,9 +431,9 @@ private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCance
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
-            
+
             Spacer(Modifier.height(8.dp))
-            
+
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     Icons.Default.LocationOn,
@@ -405,9 +450,9 @@ private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCance
             }
 
             Spacer(Modifier.height(20.dp))
-            
+
             HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
-            
+
             Spacer(Modifier.height(20.dp))
 
             Row(
@@ -421,15 +466,22 @@ private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCance
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )
-                
-                if (booking.status.equals("pending", ignoreCase = true) || 
-                    booking.status.equals("upcoming", ignoreCase = true)) {
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        TextButton(onClick = onRescheduleClick) { 
-                            Text("Reschedule", color = AccentAmber) 
-                        }
-                        TextButton(onClick = onCancelClick) { 
-                            Text("Cancel", color = Color.Red.copy(alpha = 0.7f)) 
+
+                when {
+                    isPendingSync -> Text(
+                        stringResource(R.string.status_pending_sync),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = TextMuted
+                    )
+                    booking.status.equals("pending", ignoreCase = true) ||
+                            booking.status.equals("upcoming", ignoreCase = true) -> {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = onRescheduleClick) {
+                                Text(stringResource(R.string.action_reschedule), color = AccentAmber)
+                            }
+                            TextButton(onClick = onCancelClick) {
+                                Text(stringResource(R.string.action_cancel), color = Color.Red.copy(alpha = 0.7f))
+                            }
                         }
                     }
                 }
@@ -438,10 +490,11 @@ private fun BookingCard(booking: Booking, onRescheduleClick: () -> Unit, onCance
     }
 }
 
-private fun statusLabel(status: String) = when (status) {
-    "pending" -> "Pending"
-    "upcoming" -> "Upcoming"
-    "completed" -> "Completed"
-    "cancelled" -> "Cancelled"
+@Composable
+private fun statusLabel(status: String): String = when (status) {
+    "pending" -> stringResource(R.string.status_pending)
+    "upcoming" -> stringResource(R.string.status_upcoming)
+    "completed" -> stringResource(R.string.status_completed)
+    "cancelled" -> stringResource(R.string.status_cancelled)
     else -> status.replaceFirstChar { it.uppercase() }
 }

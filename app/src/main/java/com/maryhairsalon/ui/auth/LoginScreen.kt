@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.maryhairsalon.R
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
 import com.maryhairsalon.ui.theme.SurfaceLighter
@@ -43,17 +45,16 @@ fun LoginScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Logo
         Text("♕", fontSize = 64.sp, color = AccentAmber)
         Spacer(Modifier.height(16.dp))
-        
+
         Text(
-            "Welcome Back",
+            stringResource(R.string.login_title),
             style = MaterialTheme.typography.displayMedium,
             color = Color.White
         )
         Text(
-            "Log in to manage your bookings.",
+            stringResource(R.string.login_subtitle),
             style = MaterialTheme.typography.bodyLarge,
             color = TextMuted
         )
@@ -62,7 +63,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
-            label = { Text("Email") },
+            label = { Text(stringResource(R.string.label_email)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -82,7 +83,7 @@ fun LoginScreen(
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
-            label = { Text("Password") },
+            label = { Text(stringResource(R.string.label_password)) },
             visualTransformation = PasswordVisualTransformation(),
             singleLine = true,
             modifier = Modifier.fillMaxWidth(),
@@ -120,16 +121,32 @@ fun LoginScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = BackgroundDeep)
             } else {
-                Text("Log In", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.action_login), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
         }
 
+        Spacer(Modifier.height(20.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+            Text(
+                stringResource(R.string.divider_or),
+                color = TextMuted,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+        }
+        Spacer(Modifier.height(20.dp))
+
+        GoogleSignInButton(
+            enabled = !uiState.isLoading,
+            onIdToken = { token -> viewModel.signInWithGoogle(token) },
+            onError = { message -> viewModel.setError(message) }
+        )
+
         Spacer(Modifier.height(24.dp))
         TextButton(onClick = onGoToSignup) {
-            Text(
-                "New to Mary Hair salon? Create an account",
-                color = AccentAmber
-            )
+            Text(stringResource(R.string.login_no_account), color = AccentAmber)
         }
     }
 }

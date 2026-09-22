@@ -61,7 +61,7 @@ class ManagerRepository(
                 ))
             }
 
-            txn.update(bookingRef, "status", newStatus, "updatedAt", FieldValue.serverTimestamp())
+            txn.update(bookingRef, "status", newStatus, "customerNotified", false, "updatedAt", FieldValue.serverTimestamp())
             null
         }.await()
     }
@@ -91,7 +91,7 @@ class ManagerRepository(
                 ))
             }
 
-            txn.update(bookingRef, "employee", employeeName, "employeeId", employeeId, "updatedAt", FieldValue.serverTimestamp())
+            txn.update(bookingRef, "employee", employeeName, "employeeId", employeeId, "employeeNotified", false, "updatedAt", FieldValue.serverTimestamp())
             null
         }.await()
     }

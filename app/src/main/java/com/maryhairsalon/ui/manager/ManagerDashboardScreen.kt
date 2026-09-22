@@ -33,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.maryhairsalon.ui.theme.BackgroundDeep
+import androidx.compose.ui.res.stringResource
+import com.maryhairsalon.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -80,7 +82,7 @@ fun ManagerDashboardScreen(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                    label = { Text("Bookings") },
+                    label = { Text(stringResource(R.string.nav_bookings)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                         unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
@@ -91,7 +93,7 @@ fun ManagerDashboardScreen(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
                     icon = { Icon(Icons.Default.Group, contentDescription = null) },
-                    label = { Text("Staff") },
+                    label = { Text(stringResource(R.string.nav_staff)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                         unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
@@ -102,7 +104,7 @@ fun ManagerDashboardScreen(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
                     icon = { Icon(Icons.Default.ContentCut, contentDescription = null) },
-                    label = { Text("Catalog") },
+                    label = { Text(stringResource(R.string.nav_catalog)) },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
                         unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,

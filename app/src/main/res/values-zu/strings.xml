@@ -1,0 +1,77 @@
+<resources>
+
+    <string name="action_continue_with_google">Qhubeka nge-Google</string>
+    <string name="divider_or">NOMA</string>
+
+    <string name="action_save">Londoloza</string>
+    <string name="action_cancel">Khansela</string>
+    <string name="action_back">Emuva</string>
+
+    <string name="login_title">Siyakwamukela Futhi</string>
+    <string name="login_subtitle">Ngena ukuze uphathe ukubukwa kwakho.</string>
+    <string name="label_email">I-imeyili</string>
+    <string name="label_password">Iphasiwedi</string>
+    <string name="action_login">Ngena</string>
+    <string name="login_no_account">Umusha e-Mary Hair Salon? Dala i-akhawunti</string>
+
+    <string name="signup_title">Dala I-akhawunti</string>
+    <string name="signup_subtitle">Joyina i-Mary Hair Salon namuhla.</string>
+    <string name="label_first_name">Igama Lokuqala</string>
+    <string name="label_surname">Isibongo</string>
+    <string name="label_email_address">Ikheli le-imeyili</string>
+    <string name="label_contact_number">Inombolo Yokuxhumana</string>
+    <string name="label_confirm_password">Qinisekisa Iphasiwedi</string>
+    <string name="action_signup">Bhalisa</string>
+    <string name="signup_have_account">Usunayo i-akhawunti? Ngena</string>
+    <string name="error_passwords_dont_match">Amaphasiwedi awafani.</string>
+
+    <string name="drawer_settings">Izilungiselelo</string>
+    <string name="drawer_logout">Phuma</string>
+
+    <string name="nav_services">Izinsizakalo</string>
+    <string name="nav_about">Mayelana</string>
+    <string name="nav_bookings">Ukubukwa</string>
+    <string name="nav_schedule">Ishejuli Yami</string>
+    <string name="nav_profile">Iphrofayela</string>
+    <string name="nav_staff">Abasebenzi</string>
+    <string name="nav_catalog">Ikhathalogu</string>
+
+    <string name="settings_title">Izilungiselelo</string>
+    <string name="settings_profile_section">Iphrofayela</string>
+    <string name="settings_name_locked_note">Igama lakho lixhumene nokubukwa neshejuli yakho, ngakho ngeke lishintshwe lapha. Buza umphathi uma kudingeka lishintshwe.</string>
+    <string name="action_save_profile">Londoloza Iphrofayela</string>
+    <string name="settings_password_section">Shintsha Iphasiwedi</string>
+    <string name="label_current_password">Iphasiwedi Yamanje</string>
+    <string name="label_new_password">Iphasiwedi Entsha</string>
+    <string name="label_confirm_new_password">Qinisekisa Iphasiwedi Entsha</string>
+    <string name="action_change_password">Shintsha Iphasiwedi</string>
+    <string name="settings_language_section">Ulimi</string>
+    <string name="settings_language_note">Khetha ulimi ofuna ukusebenzisa kuhlelo lokusebenza.</string>
+    <string name="profile_updated">Iphrofayela ibuyekeziwe.</string>
+    <string name="password_changed">Iphasiwedi ishintshiwe.</string>
+
+    <string name="language_english">English</string>
+    <string name="language_afrikaans">Afrikaans</string>
+    <string name="language_zulu">isiZulu</string>
+
+    <string name="status_all">Konke</string>
+    <string name="status_pending">Kulindile</string>
+    <string name="status_upcoming">Okuzayo</string>
+    <string name="status_completed">Kuqediwe</string>
+    <string name="status_cancelled">Kukhanseliwe</string>
+    <string name="status_cancelling">Iyakhanselwa…</string>
+    <string name="status_pending_sync">Kulinde ukuvumelanisa</string>
+
+    <string name="bookings_title">Ukubukwa Kwami</string>
+    <string name="bookings_subtitle">Wonke ama-appointment akho, endaweni eyodwa.</string>
+    <string name="bookings_account_label">I-akhawunti Yakho</string>
+    <string name="bookings_empty">Awukho ukubukwa okwamanje — uma usubukile insizakalo, izovela lapha.</string>
+    <string name="bookings_error">Kukhona okungahambanga kahle ekulayisheni ukubukwa kwakho. Sicela uhlole uxhumano lwakho.</string>
+    <string name="bookings_offline_banner">Awuxhumekile — kubonisa ukubukwa kwakho kokugcina okuvumelaniswe. Ukukhanselwa kuzovumelaniswa ngokuzenzakalela.</string>
+    <string name="action_reschedule">Hlela Kabusha</string>
+    <string name="cancel_dialog_title">Khansela lokhu kubukwa?</string>
+    <string name="cancel_dialog_body_online">Lokhu kuzomaka i-appointment njengekhanseliwe.</string>
+    <string name="cancel_dialog_body_offline">Awuxhumekile — lokhu kuzokhanselwa ngokuzenzakalela uma usuxhumekile futhi.</string>
+    <string name="action_confirm_cancel">Khansela ukubukwa</string>
+    <string name="action_keep_booking">Cha, gcina</string>
+</resources>

@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -18,6 +19,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.maryhairsalon.R
+import com.maryhairsalon.data.repository.DialCodeOption
+import com.maryhairsalon.ui.components.CountryCodePicker
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
 import com.maryhairsalon.ui.theme.SurfaceLighter
@@ -27,9 +31,19 @@ import com.maryhairsalon.ui.theme.TextMuted
 fun SignupScreen(
     onSignedUp: () -> Unit,
     onGoToLogin: () -> Unit,
-    viewModel: AuthViewModel = viewModel()
+    viewModel: AuthViewModel = viewModel(),
+    countryCodeViewModel: CountryCodeViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val countryOptions by countryCodeViewModel.options.collectAsStateWithLifecycle()
+    var selectedDialCode by remember { mutableStateOf<DialCodeOption?>(null) }
+
+    LaunchedEffect(countryOptions) {
+        if (selectedDialCode == null && countryOptions.isNotEmpty()) {
+            selectedDialCode = countryOptions.find { it.countryCode == "ZA" } ?: countryOptions.first()
+        }
+    }
+
     var name by remember { mutableStateOf("") }
     var surname by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -53,21 +67,36 @@ fun SignupScreen(
         Text("♕", fontSize = 64.sp, color = AccentAmber)
         Spacer(Modifier.height(16.dp))
 
-        Text("Create Account", style = MaterialTheme.typography.displayMedium, color = Color.White)
-        Text("Join Mary Hair Salon today.", style = MaterialTheme.typography.bodyLarge, color = TextMuted)
+        Text(stringResource(R.string.signup_title), style = MaterialTheme.typography.displayMedium, color = Color.White)
+        Text(stringResource(R.string.signup_subtitle), style = MaterialTheme.typography.bodyLarge, color = TextMuted)
         Spacer(Modifier.height(32.dp))
 
-        AuthField(value = name, onValueChange = { name = it }, label = "First Name")
+        AuthField(value = name, onValueChange = { name = it }, label = stringResource(R.string.label_first_name))
         Spacer(Modifier.height(12.dp))
-        AuthField(value = surname, onValueChange = { surname = it }, label = "Surname")
+        AuthField(value = surname, onValueChange = { surname = it }, label = stringResource(R.string.label_surname))
         Spacer(Modifier.height(12.dp))
-        AuthField(value = email, onValueChange = { email = it }, label = "Email Address", keyboardType = KeyboardType.Email)
+        AuthField(value = email, onValueChange = { email = it }, label = stringResource(R.string.label_email_address), keyboardType = KeyboardType.Email)
         Spacer(Modifier.height(12.dp))
-        AuthField(value = contact, onValueChange = { contact = it }, label = "Contact Number", keyboardType = KeyboardType.Phone)
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+            CountryCodePicker(
+                selected = selectedDialCode,
+                options = countryOptions,
+                onSelect = { selectedDialCode = it }
+            )
+            AuthField(
+                value = contact,
+                onValueChange = { contact = it },
+                label = stringResource(R.string.label_contact_number),
+                keyboardType = KeyboardType.Phone,
+                modifier = Modifier.weight(1f)
+            )
+        }
+
         Spacer(Modifier.height(12.dp))
-        AuthField(value = password, onValueChange = { password = it }, label = "Password", isPassword = true)
+        AuthField(value = password, onValueChange = { password = it }, label = stringResource(R.string.label_password), isPassword = true)
         Spacer(Modifier.height(12.dp))
-        AuthField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = "Confirm Password", isPassword = true)
+        AuthField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = stringResource(R.string.label_confirm_password), isPassword = true)
 
         uiState.errorMessage?.let {
             Spacer(Modifier.height(12.dp))
@@ -76,7 +105,10 @@ fun SignupScreen(
 
         Spacer(Modifier.height(32.dp))
         Button(
-            onClick = { viewModel.signup(name, surname, email, contact, password, confirmPassword) },
+            onClick = {
+                val fullContact = selectedDialCode?.let { "${it.dialCode} $contact" } ?: contact
+                viewModel.signup(name, surname, email, fullContact, password, confirmPassword)
+            },
             enabled = !uiState.isLoading,
             modifier = Modifier
                 .fillMaxWidth()
@@ -90,13 +122,32 @@ fun SignupScreen(
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = BackgroundDeep)
             } else {
-                Text("Sign Up", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.action_signup), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             }
         }
 
+        Spacer(Modifier.height(20.dp))
+        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+            Text(
+                stringResource(R.string.divider_or),
+                color = TextMuted,
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
+        }
+        Spacer(Modifier.height(20.dp))
+
+        GoogleSignInButton(
+            enabled = !uiState.isLoading,
+            onIdToken = { token -> viewModel.signInWithGoogle(token) },
+            onError = { message -> viewModel.setError(message) }
+        )
+
         Spacer(Modifier.height(24.dp))
         TextButton(onClick = onGoToLogin) {
-            Text("Already have an account? Log In", color = AccentAmber)
+            Text(stringResource(R.string.signup_have_account), color = AccentAmber)
         }
         Spacer(Modifier.height(40.dp))
     }
@@ -108,7 +159,8 @@ private fun AuthField(
     onValueChange: (String) -> Unit,
     label: String,
     keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false
+    isPassword: Boolean = false,
+    modifier: Modifier = Modifier.fillMaxWidth()
 ) {
     OutlinedTextField(
         value = value,
@@ -117,7 +169,7 @@ private fun AuthField(
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
         singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier,
         shape = RoundedCornerShape(12.dp),
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = AccentAmber,
