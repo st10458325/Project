@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  unit-tests-and-build:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -33,6 +33,29 @@ jobs:
         with:
           name: unit-test-results
           path: app/build/reports/tests/
+
+      - name: Enable KVM for Android Emulator
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-rules.rules
+          sudo udevadm control --reload-rules && sudo udevadm trigger --name-match=kvm
+
+      - name: Run instrumented Android tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -no-audio -no-boot-anim
+          disable-animations: true
+          script: ./gradlew connectedDebugAndroidTest
+
+      - name: Upload Android test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-test-results
+          path: app/build/reports/androidTests/connected/
 
       - name: Build debug APK
         run: ./gradlew assembleDebug

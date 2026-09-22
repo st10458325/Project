@@ -43,13 +43,6 @@ android {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.13.2")
-    testImplementation("io.mockk:mockk:1.13.11")
-
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4:<your Compose BOM version>")
-    debugImplementation("androidx.compose.ui:ui-test-manifest:<your Compose BOM version>")
-
     implementation("io.coil-kt:coil-compose:2.7.0")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
