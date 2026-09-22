@@ -2,7 +2,7 @@
 
 A modern, full-featured native Android application for **Mary Hair Salon**, built using **Kotlin**, **Jetpack Compose**, **Material 3**, and **Firebase**. The app delivers a tailored experience across three user roles: **Customers**, **Employees**, and **Salon Managers**, complete with offline capabilities, external API integrations, and multi-language localization.
 
-![Android CI](https://github.com/YOUR-USERNAME/YOUR-REPO/actions/workflows/android-ci.yml/badge.svg)
+![Android CI](https://github.com/st10458325/Mary-Hair-Salon-Application/actions/workflows/android-ci.yml/badge.svg)
 
 ---
 
