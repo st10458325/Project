@@ -9,6 +9,13 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
+import com.maryhairsalon.data.local.ThemeMode
+import com.maryhairsalon.data.local.ThemePreferences
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 data class SettingsUiState(
     val isLoading: Boolean = true,
@@ -28,14 +35,15 @@ data class SettingsUiState(
     val passwordMessage: String? = null,
     val passwordError: String? = null,
 
-    val selectedLanguage: String = LocaleManager.getCurrentLanguage()
+    val selectedLanguage: String = LocaleManager.getCurrentLanguage(),
+    val themeMode: ThemeMode = ThemeMode.SYSTEM
 ) {
     val canEditName: Boolean get() = role == "customer"
 }
 
-class SettingsViewModel(
-    private val repository: AuthRepository = AuthRepository()
-) : ViewModel() {
+class SettingsViewModel(application: Application) : AndroidViewModel(application) {
+    private val repository = AuthRepository()
+    private val themePreferences = ThemePreferences(application)
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
@@ -56,6 +64,11 @@ class SettingsViewModel(
             }
         } else {
             _uiState.value = _uiState.value.copy(isLoading = false)
+        }
+        viewModelScope.launch {
+            themePreferences.themeMode.collect { mode ->
+                _uiState.value = _uiState.value.copy(themeMode = mode)
+            }
         }
     }
 
@@ -118,5 +131,10 @@ class SettingsViewModel(
     fun setLanguage(languageCode: String) {
         LocaleManager.setAppLocale(languageCode)
         _uiState.value = _uiState.value.copy(selectedLanguage = languageCode)
+    }
+
+    fun setThemeMode(mode: ThemeMode) {
+        _uiState.value = _uiState.value.copy(themeMode = mode)
+        viewModelScope.launch { themePreferences.setThemeMode(mode) }
     }
 }

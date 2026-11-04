@@ -56,7 +56,7 @@ class MarySalonMessagingService : FirebaseMessagingService() {
         )
 
         val notification = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_mary_salon_notification)
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

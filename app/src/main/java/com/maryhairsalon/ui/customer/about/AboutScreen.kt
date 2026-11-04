@@ -2,104 +2,98 @@ package com.maryhairsalon.ui.customer.about
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.maryhairsalon.data.models.User
-import com.maryhairsalon.ui.theme.AccentAmber
+import com.maryhairsalon.ui.components.SalonBrandRow
+import com.maryhairsalon.ui.components.SalonHeroHeader
+import com.maryhairsalon.ui.components.rememberTopScreenGradient
 import com.maryhairsalon.ui.theme.AccentGlow
-import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.SurfaceLighter
-import com.maryhairsalon.ui.theme.TextMuted
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
     onMenuClick: () -> Unit,
     viewModel: AboutViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colors = MaterialTheme.colorScheme
+    val gradient = rememberTopScreenGradient()
 
+    // Same structure as the Services screen: no top bar, the gradient paints
+    // behind the status bar, and the brand row + hero header are ordinary
+    // scrolling content at the top of the list.
     Scaffold(
-        containerColor = BackgroundDeep,
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = BackgroundDeep,
-                    titleContentColor = Color.White
-                ),
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(Modifier.size(32.dp).padding(4.dp), contentAlignment = Alignment.Center) {
-                            Text("♕", fontSize = 24.sp, color = AccentAmber)
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text("Mary", style = MaterialTheme.typography.titleLarge, color = Color.White, fontWeight = FontWeight.Bold)
-                            Text("Hair salon", style = MaterialTheme.typography.labelSmall, color = TextMuted, fontSize = 10.sp)
-                        }
-                    }
-                },
-                navigationIcon = {},
-                actions = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
-                    }
-                }
-            )
-        }
+        containerColor = colors.background,
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
     ) { padding ->
-        when {
-            uiState.isLoading -> Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                CircularProgressIndicator(color = AccentAmber)
-            }
-            uiState.errorMessage != null -> Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text(uiState.errorMessage!!, color = TextMuted)
-            }
-            uiState.stylists.isEmpty() -> Box(Modifier.padding(padding).fillMaxSize(), Alignment.Center) {
-                Text(
-                    "Our stylists will appear here once the team is set up.",
-                    color = TextMuted,
-                    modifier = Modifier.padding(32.dp),
-                    textAlign = TextAlign.Center
-                )
-            }
-            else -> LazyColumn(
-                modifier = Modifier.padding(padding),
+        Box(
+            Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(gradient)
+        ) {
+            LazyVerticalGrid(
+                modifier = Modifier.statusBarsPadding(),
+                columns = GridCells.Adaptive(minSize = 240.dp),
                 contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
-                item {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
-                    ) {
-                        Text("MEET THE TEAM", style = MaterialTheme.typography.labelMedium, color = AccentAmber, fontWeight = FontWeight.Bold)
-                        Spacer(Modifier.height(8.dp))
-                        Text("The Stylists", style = MaterialTheme.typography.displayLarge, color = Color.White, textAlign = TextAlign.Center)
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SalonBrandRow(onMenuClick = onMenuClick, modifier = Modifier.padding(bottom = 12.dp))
+                }
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SalonHeroHeader(
+                        title = "The Stylists",
+                        eyebrow = "MEET THE TEAM",
+                        subtitle = "The people behind your next look.",
+                        searchContent = null
+                    )
+                }
+
+                when {
+                    uiState.isLoading -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), Alignment.Center) {
+                            CircularProgressIndicator(color = colors.primary)
+                        }
                     }
-                }
-                item {
-                    TipOfTheDayCard(tip = uiState.tipOfTheDay, isLoading = uiState.isLoadingTip)
-                }
-                items(uiState.stylists, key = { it.id }) { stylist ->
-                    StylistCard(stylist)
+                    uiState.errorMessage != null -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), Alignment.Center) {
+                            Text(uiState.errorMessage!!, color = colors.tertiary, textAlign = TextAlign.Center)
+                        }
+                    }
+                    uiState.stylists.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), Alignment.Center) {
+                            Text(
+                                "Our stylists will appear here once the team is set up.",
+                                color = colors.tertiary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    else -> {
+                        item(span = { GridItemSpan(maxLineSpan) }) {
+                            TipOfTheDayCard(tip = uiState.tipOfTheDay, isLoading = uiState.isLoadingTip)
+                        }
+                        items(uiState.stylists, key = { it.id }) { stylist ->
+                            StylistCard(stylist)
+                        }
+                    }
                 }
             }
         }
@@ -108,14 +102,15 @@ fun AboutScreen(
 
 @Composable
 private fun StylistCard(user: User) {
+    val colors = MaterialTheme.colorScheme
     Column(Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .aspectRatio(3f / 4f)  // portrait ratio — scales with the card's actual width instead of assuming 340dp always looks right
+                .aspectRatio(3f / 4f)
                 .clip(RoundedCornerShape(16.dp))
-                .background(SurfaceLighter)
-        )  {
+                .background(colors.surface)
+        ) {
             if (user.photoUrl.isNotBlank()) {
                 AsyncImage(
                     model = user.photoUrl,
@@ -128,7 +123,7 @@ private fun StylistCard(user: User) {
                     Text(
                         user.name.split(" ").mapNotNull { it.firstOrNull() }.joinToString(""),
                         style = MaterialTheme.typography.displayLarge,
-                        color = AccentAmber
+                        color = colors.primary
                     )
                 }
             }
@@ -143,27 +138,28 @@ private fun StylistCard(user: User) {
             Text(
                 user.title.ifBlank { "Stylist" },
                 style = MaterialTheme.typography.labelSmall,
-                color = AccentAmber,
+                color = colors.primary,
                 fontWeight = FontWeight.Bold
             )
         }
         Spacer(Modifier.height(6.dp))
-        Text(user.name, style = MaterialTheme.typography.titleLarge, color = Color.White)
+        Text(user.name, style = MaterialTheme.typography.titleLarge, color = colors.onBackground)
     }
 }
 
 @Composable
 private fun TipOfTheDayCard(tip: String?, isLoading: Boolean) {
     if (isLoading || tip == null) return
+    val colors = MaterialTheme.colorScheme
     Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(SurfaceLighter)
+            .background(colors.surface)
             .padding(16.dp)
     ) {
-        Text("TIP OF THE DAY", style = MaterialTheme.typography.labelSmall, color = AccentAmber, fontWeight = FontWeight.Bold)
+        Text("TIP OF THE DAY", style = MaterialTheme.typography.labelSmall, color = colors.primary, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(6.dp))
-        Text(tip, style = MaterialTheme.typography.bodyMedium, color = Color.White)
+        Text(tip, style = MaterialTheme.typography.bodyMedium, color = colors.onSurface)
     }
 }

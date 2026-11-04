@@ -2,8 +2,9 @@ package com.maryhairsalon.ui.auth
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -12,15 +13,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.R
+import com.maryhairsalon.ui.components.AuthTextField
+import com.maryhairsalon.ui.components.OrDivider
+import com.maryhairsalon.ui.components.SalonLogo
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.SurfaceLighter
 import com.maryhairsalon.ui.theme.TextMuted
 
 @Composable
@@ -37,116 +39,78 @@ fun LoginScreen(
         if (uiState.isLoggedIn) onLoggedIn()
     }
 
-    Column(
+    // Box centres the form when it's short and lets it scroll when the screen
+    // is small or the keyboard is open.
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDeep)
-            .padding(24.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .systemBarsPadding()
+            .imePadding(),
+        contentAlignment = Alignment.Center
     ) {
-        Text("♕", fontSize = 64.sp, color = AccentAmber)
-        Spacer(Modifier.height(16.dp))
-
-        Text(
-            stringResource(R.string.login_title),
-            style = MaterialTheme.typography.displayMedium,
-            color = Color.White
-        )
-        Text(
-            stringResource(R.string.login_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
-            color = TextMuted
-        )
-        Spacer(Modifier.height(48.dp))
-
-        OutlinedTextField(
-            value = email,
-            onValueChange = { email = it },
-            label = { Text(stringResource(R.string.label_email)) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AccentAmber,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                focusedLabelColor = AccentAmber,
-                unfocusedLabelColor = TextMuted,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = SurfaceLighter,
-                unfocusedContainerColor = SurfaceLighter
-            )
-        )
-        Spacer(Modifier.height(16.dp))
-        OutlinedTextField(
-            value = password,
-            onValueChange = { password = it },
-            label = { Text(stringResource(R.string.label_password)) },
-            visualTransformation = PasswordVisualTransformation(),
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(12.dp),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = AccentAmber,
-                unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                focusedLabelColor = AccentAmber,
-                unfocusedLabelColor = TextMuted,
-                focusedTextColor = Color.White,
-                unfocusedTextColor = Color.White,
-                focusedContainerColor = SurfaceLighter,
-                unfocusedContainerColor = SurfaceLighter
-            )
-        )
-
-        uiState.errorMessage?.let {
-            Spacer(Modifier.height(12.dp))
-            Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
-        }
-
-        Spacer(Modifier.height(32.dp))
-        Button(
-            onClick = { viewModel.login(email, password) },
-            enabled = !uiState.isLoading,
+        Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
-            shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentAmber,
-                contentColor = BackgroundDeep
-            )
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (uiState.isLoading) {
-                CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = BackgroundDeep)
-            } else {
-                Text(stringResource(R.string.action_login), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            }
-        }
+            SalonLogo(size = 112.dp)
+            Spacer(Modifier.height(20.dp))
 
-        Spacer(Modifier.height(20.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
             Text(
-                stringResource(R.string.divider_or),
-                color = TextMuted,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(horizontal = 12.dp)
+                stringResource(R.string.login_title),
+                style = MaterialTheme.typography.displayLarge,
+                color = Color.White,
+                textAlign = TextAlign.Center
             )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
-        }
-        Spacer(Modifier.height(20.dp))
+            Spacer(Modifier.height(4.dp))
+            Text(
+                stringResource(R.string.login_subtitle),
+                style = MaterialTheme.typography.bodyLarge,
+                color = TextMuted,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(40.dp))
 
-        GoogleSignInButton(
-            enabled = !uiState.isLoading,
-            onIdToken = { token -> viewModel.signInWithGoogle(token) },
-            onError = { message -> viewModel.setError(message) }
-        )
+            AuthTextField(email, { email = it }, stringResource(R.string.label_email), keyboardType = KeyboardType.Email)
+            Spacer(Modifier.height(16.dp))
+            AuthTextField(password, { password = it }, stringResource(R.string.label_password), isPassword = true)
 
-        Spacer(Modifier.height(24.dp))
-        TextButton(onClick = onGoToSignup) {
-            Text(stringResource(R.string.login_no_account), color = AccentAmber)
+            uiState.errorMessage?.let {
+                Spacer(Modifier.height(12.dp))
+                Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            }
+
+            Spacer(Modifier.height(28.dp))
+            Button(
+                onClick = { viewModel.login(email, password) },
+                enabled = !uiState.isLoading,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = AccentAmber, contentColor = BackgroundDeep)
+            ) {
+                if (uiState.isLoading) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = BackgroundDeep)
+                } else {
+                    Text(stringResource(R.string.action_login), style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(Modifier.height(20.dp))
+            OrDivider()
+            Spacer(Modifier.height(20.dp))
+
+            GoogleSignInButton(
+                enabled = !uiState.isLoading,
+                onIdToken = { token -> viewModel.signInWithGoogle(token) },
+                onError = { message -> viewModel.setError(message) }
+            )
+
+            Spacer(Modifier.height(20.dp))
+            TextButton(onClick = onGoToSignup) {
+                Text(stringResource(R.string.login_no_account), color = AccentAmber)
+            }
         }
     }
 }

@@ -4,7 +4,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,17 +13,18 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.R
 import com.maryhairsalon.data.repository.DialCodeOption
+import com.maryhairsalon.ui.components.AuthTextField
 import com.maryhairsalon.ui.components.CountryCodePicker
+import com.maryhairsalon.ui.components.OrDivider
+import com.maryhairsalon.ui.components.SalonLogo
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.SurfaceLighter
 import com.maryhairsalon.ui.theme.TextMuted
 
 @Composable
@@ -55,27 +55,43 @@ fun SignupScreen(
         if (uiState.isLoggedIn) onSignedUp()
     }
 
+    // systemBarsPadding keeps the last button clear of the navigation bar;
+    // imePadding keeps the focused field above the keyboard.
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDeep)
+            .systemBarsPadding()
+            .imePadding()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
+            .padding(horizontal = 24.dp, vertical = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.height(40.dp))
-        Text("♕", fontSize = 64.sp, color = AccentAmber)
+        SalonLogo(size = 88.dp)
         Spacer(Modifier.height(16.dp))
 
-        Text(stringResource(R.string.signup_title), style = MaterialTheme.typography.displayMedium, color = Color.White)
-        Text(stringResource(R.string.signup_subtitle), style = MaterialTheme.typography.bodyLarge, color = TextMuted)
-        Spacer(Modifier.height(32.dp))
+        Text(
+            stringResource(R.string.signup_title),
+            style = MaterialTheme.typography.displayLarge,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            stringResource(R.string.signup_subtitle),
+            style = MaterialTheme.typography.bodyLarge,
+            color = TextMuted,
+            textAlign = TextAlign.Center
+        )
+        Spacer(Modifier.height(28.dp))
 
-        AuthField(value = name, onValueChange = { name = it }, label = stringResource(R.string.label_first_name))
+        // First name and surname share a row — saves a whole line of scrolling.
+        Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
+            AuthTextField(name, { name = it }, stringResource(R.string.label_first_name), modifier = Modifier.weight(1f))
+            AuthTextField(surname, { surname = it }, stringResource(R.string.label_surname), modifier = Modifier.weight(1f))
+        }
         Spacer(Modifier.height(12.dp))
-        AuthField(value = surname, onValueChange = { surname = it }, label = stringResource(R.string.label_surname))
-        Spacer(Modifier.height(12.dp))
-        AuthField(value = email, onValueChange = { email = it }, label = stringResource(R.string.label_email_address), keyboardType = KeyboardType.Email)
+        AuthTextField(email, { email = it }, stringResource(R.string.label_email_address), keyboardType = KeyboardType.Email)
         Spacer(Modifier.height(12.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
@@ -84,40 +100,34 @@ fun SignupScreen(
                 options = countryOptions,
                 onSelect = { selectedDialCode = it }
             )
-            AuthField(
-                value = contact,
-                onValueChange = { contact = it },
-                label = stringResource(R.string.label_contact_number),
+            AuthTextField(
+                contact, { contact = it },
+                stringResource(R.string.label_contact_number),
                 keyboardType = KeyboardType.Phone,
                 modifier = Modifier.weight(1f)
             )
         }
 
         Spacer(Modifier.height(12.dp))
-        AuthField(value = password, onValueChange = { password = it }, label = stringResource(R.string.label_password), isPassword = true)
+        AuthTextField(password, { password = it }, stringResource(R.string.label_password), isPassword = true)
         Spacer(Modifier.height(12.dp))
-        AuthField(value = confirmPassword, onValueChange = { confirmPassword = it }, label = stringResource(R.string.label_confirm_password), isPassword = true)
+        AuthTextField(confirmPassword, { confirmPassword = it }, stringResource(R.string.label_confirm_password), isPassword = true)
 
         uiState.errorMessage?.let {
             Spacer(Modifier.height(12.dp))
             Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
 
-        Spacer(Modifier.height(32.dp))
+        Spacer(Modifier.height(24.dp))
         Button(
             onClick = {
                 val fullContact = selectedDialCode?.let { "${it.dialCode} $contact" } ?: contact
                 viewModel.signup(name, surname, email, fullContact, password, confirmPassword)
             },
             enabled = !uiState.isLoading,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp),
+            modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = AccentAmber,
-                contentColor = BackgroundDeep
-            )
+            colors = ButtonDefaults.buttonColors(containerColor = AccentAmber, contentColor = BackgroundDeep)
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp, color = BackgroundDeep)
@@ -127,16 +137,7 @@ fun SignupScreen(
         }
 
         Spacer(Modifier.height(20.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
-            Text(
-                stringResource(R.string.divider_or),
-                color = TextMuted,
-                style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-            HorizontalDivider(modifier = Modifier.weight(1f), color = Color.White.copy(alpha = 0.1f))
-        }
+        OrDivider()
         Spacer(Modifier.height(20.dp))
 
         GoogleSignInButton(
@@ -145,41 +146,10 @@ fun SignupScreen(
             onError = { message -> viewModel.setError(message) }
         )
 
-        Spacer(Modifier.height(24.dp))
+        Spacer(Modifier.height(16.dp))
         TextButton(onClick = onGoToLogin) {
             Text(stringResource(R.string.signup_have_account), color = AccentAmber)
         }
-        Spacer(Modifier.height(40.dp))
+        Spacer(Modifier.height(16.dp))
     }
-}
-
-@Composable
-private fun AuthField(
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    keyboardType: KeyboardType = KeyboardType.Text,
-    isPassword: Boolean = false,
-    modifier: Modifier = Modifier.fillMaxWidth()
-) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
-        visualTransformation = if (isPassword) PasswordVisualTransformation() else androidx.compose.ui.text.input.VisualTransformation.None,
-        singleLine = true,
-        modifier = modifier,
-        shape = RoundedCornerShape(12.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = AccentAmber,
-            unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-            focusedLabelColor = AccentAmber,
-            unfocusedLabelColor = TextMuted,
-            focusedTextColor = Color.White,
-            unfocusedTextColor = Color.White,
-            focusedContainerColor = SurfaceLighter,
-            unfocusedContainerColor = SurfaceLighter
-        )
-    )
 }

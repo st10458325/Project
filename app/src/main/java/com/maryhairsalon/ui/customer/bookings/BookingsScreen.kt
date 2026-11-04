@@ -2,43 +2,38 @@ package com.maryhairsalon.ui.customer.bookings
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.lerp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.lerp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.R
 import com.maryhairsalon.data.models.Booking
-import com.maryhairsalon.ui.theme.AccentAmber
-import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.SurfaceLighter
-import com.maryhairsalon.ui.theme.TextMuted
+import com.maryhairsalon.ui.components.SalonBrandRow
+import com.maryhairsalon.ui.components.SalonHeroHeader
+import com.maryhairsalon.ui.components.rememberTopScreenGradient
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookingsScreen(
     onLogout: () -> Unit,
@@ -48,118 +43,75 @@ fun BookingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var confirmCancelBookingId by remember { mutableStateOf<String?>(null) }
-    val scrollState = rememberLazyListState()
+    val colors = MaterialTheme.colorScheme
+    val gradient = rememberTopScreenGradient()
 
-    val headerHeight = 200.dp
-    val minHeaderHeight = 80.dp
-    val headerHeightPx = with(LocalDensity.current) { headerHeight.toPx() }
-    val minHeaderHeightPx = with(LocalDensity.current) { minHeaderHeight.toPx() }
-
-    val scrollOffset = remember { derivedStateOf { scrollState.firstVisibleItemScrollOffset } }
-    val isFirstItemVisible = remember { derivedStateOf { scrollState.firstVisibleItemIndex == 0 } }
-
-    val currentHeaderHeight = remember {
-        derivedStateOf {
-            if (isFirstItemVisible.value) {
-                val offset = scrollOffset.value.toFloat()
-                val newHeight = (headerHeightPx - offset).coerceAtLeast(minHeaderHeightPx)
-                newHeight
-            } else {
-                minHeaderHeightPx
-            }
-        }
-    }
-
-    val progress = remember {
-        derivedStateOf {
-            ((currentHeaderHeight.value - minHeaderHeightPx) / (headerHeightPx - minHeaderHeightPx)).coerceIn(0f, 1f)
-        }
-    }
-
+    // Same structure as the Services screen: no top bar, the gradient paints
+    // behind the status bar, and the brand row + hero header scroll with the list.
     Scaffold(
-        containerColor = BackgroundDeep,
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = BackgroundDeep,
-                    titleContentColor = Color.White
-                ),
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .padding(4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("♕", fontSize = 24.sp, color = AccentAmber)
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                "Mary",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                "Hair salon",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextMuted,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {},
-                actions = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
-                    }
-                }
-            )
-        }
+        containerColor = colors.background,
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
     ) { padding ->
-        Column(
-            modifier = Modifier
+        Box(
+            Modifier
                 .padding(padding)
                 .fillMaxSize()
+                .background(gradient)
         ) {
-            if (uiState.isOffline) {
-                OfflineBanner()
-            }
-
-            HeaderSection(
-                height = with(LocalDensity.current) { currentHeaderHeight.value.toDp() },
-                progress = progress.value
-            )
-
-            FilterSection(
-                activeFilter = uiState.activeFilter,
-                counts = uiState.counts,
-                onFilterSelected = { viewModel.setFilter(it) }
-            )
-
-            when {
-                uiState.isLoading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator(color = AccentAmber)
+            LazyVerticalGrid(
+                modifier = Modifier.statusBarsPadding(),
+                columns = GridCells.Adaptive(minSize = 340.dp),
+                contentPadding = PaddingValues(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SalonBrandRow(onMenuClick = onMenuClick, modifier = Modifier.padding(bottom = 12.dp))
                 }
-                uiState.errorMessage != null -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Text(uiState.errorMessage!!, color = Color.White)
-                }
-                uiState.bookings.isEmpty() -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Text(
-                        stringResource(R.string.bookings_empty),
-                        color = TextMuted,
-                        modifier = Modifier.padding(32.dp)
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SalonHeroHeader(
+                        title = stringResource(R.string.bookings_title),
+                        eyebrow = stringResource(R.string.bookings_account_label),
+                        subtitle = stringResource(R.string.bookings_subtitle),
+                        searchContent = null
                     )
                 }
-                else -> LazyColumn(
-                    state = scrollState,
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(uiState.bookings, key = { it.id }) { booking ->
+
+                if (uiState.isOffline) {
+                    item(span = { GridItemSpan(maxLineSpan) }) {
+                        OfflineBanner()
+                    }
+                }
+
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    FilterSection(
+                        activeFilter = uiState.activeFilter,
+                        counts = uiState.counts,
+                        onFilterSelected = { viewModel.setFilter(it) }
+                    )
+                }
+
+                when {
+                    uiState.isLoading -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), Alignment.Center) {
+                            CircularProgressIndicator(color = colors.primary)
+                        }
+                    }
+                    uiState.errorMessage != null -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), Alignment.Center) {
+                            Text(uiState.errorMessage!!, color = colors.onBackground, textAlign = TextAlign.Center)
+                        }
+                    }
+                    uiState.bookings.isEmpty() -> item(span = { GridItemSpan(maxLineSpan) }) {
+                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), Alignment.Center) {
+                            Text(
+                                stringResource(R.string.bookings_empty),
+                                color = colors.tertiary,
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+                    else -> items(uiState.bookings, key = { it.id }) { booking ->
                         BookingCard(
                             booking = booking,
                             isPendingSync = booking.id in uiState.pendingCancelIds,
@@ -197,69 +149,22 @@ fun BookingsScreen(
 
 @Composable
 private fun OfflineBanner() {
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color(0xFF3E2F1F))
+            .clip(RoundedCornerShape(12.dp))
+            .background(colors.surfaceVariant)
             .padding(horizontal = 16.dp, vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(Icons.Default.WifiOff, contentDescription = null, tint = AccentAmber, modifier = Modifier.size(16.dp))
+        Icon(Icons.Default.WifiOff, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
         Spacer(Modifier.width(8.dp))
         Text(
             stringResource(R.string.bookings_offline_banner),
             style = MaterialTheme.typography.labelSmall,
-            color = Color.White
+            color = colors.onSurfaceVariant
         )
-    }
-}
-
-@Composable
-private fun HeaderSection(height: androidx.compose.ui.unit.Dp, progress: Float) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(height)
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF2D1B14),
-                        BackgroundDeep
-                    )
-                )
-            ),
-        contentAlignment = Alignment.Center
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.graphicsLayer {
-                alpha = progress.coerceAtLeast(0.3f)
-                scaleX = 0.8f + (progress * 0.2f)
-                scaleY = 0.8f + (progress * 0.2f)
-            }
-        ) {
-            if (progress > 0.5f) {
-                Text(
-                    stringResource(R.string.bookings_account_label),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = AccentAmber,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-            Text(
-                stringResource(R.string.bookings_title),
-                style = lerp(MaterialTheme.typography.titleLarge, MaterialTheme.typography.displayLarge, progress),
-                color = Color.White
-            )
-            if (progress > 0.8f) {
-                Spacer(Modifier.height(8.dp))
-                Text(
-                    stringResource(R.string.bookings_subtitle),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextMuted
-                )
-            }
-        }
     }
 }
 
@@ -271,27 +176,20 @@ private fun FilterSection(
 ) {
     val statuses = listOf("all", "pending", "upcoming", "completed", "cancelled")
 
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            statuses.take(3).forEach { status ->
-                FilterPill(
-                    label = filterLabel(status),
-                    count = counts[status] ?: 0,
-                    selected = activeFilter == status,
-                    onClick = { onFilterSelected(status) }
-                )
-            }
-        }
-        Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            statuses.drop(3).forEach { status ->
-                FilterPill(
-                    label = filterLabel(status),
-                    count = counts[status] ?: 0,
-                    selected = activeFilter == status,
-                    onClick = { onFilterSelected(status) }
-                )
-            }
+    // One line; swipe sideways on narrow screens to reach the rest.
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        statuses.forEach { status ->
+            FilterPill(
+                label = filterLabel(status),
+                count = counts[status] ?: 0,
+                selected = activeFilter == status,
+                onClick = { onFilterSelected(status) }
+            )
         }
     }
 }
@@ -313,13 +211,14 @@ private fun FilterPill(
     selected: Boolean,
     onClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Surface(
         onClick = onClick,
         shape = CircleShape,
         color = Color.Transparent,
         border = BorderStroke(
             width = 1.dp,
-            color = if (selected) AccentAmber else Color.White.copy(alpha = 0.1f)
+            color = if (selected) colors.primary else colors.onBackground.copy(alpha = 0.1f)
         ),
         modifier = Modifier.height(36.dp)
     ) {
@@ -331,18 +230,18 @@ private fun FilterPill(
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
-                color = if (selected) Color.White else TextMuted
+                color = if (selected) colors.onBackground else colors.tertiary
             )
             Box(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .background(if (selected) AccentAmber else Color.White.copy(alpha = 0.1f))
+                    .background(if (selected) colors.primary else colors.onBackground.copy(alpha = 0.1f))
                     .padding(horizontal = 6.dp, vertical = 2.dp)
             ) {
                 Text(
                     text = count.toString(),
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (selected) BackgroundDeep else Color.White,
+                    color = if (selected) colors.background else colors.onBackground,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -357,10 +256,11 @@ private fun BookingCard(
     onRescheduleClick: () -> Unit,
     onCancelClick: () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceLighter)
+        colors = CardDefaults.cardColors(containerColor = colors.surface)
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(
@@ -371,20 +271,22 @@ private fun BookingCard(
                 Text(
                     booking.service.ifBlank { "Service" },
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White
+                    color = colors.onSurface,
+                    modifier = Modifier.weight(1f)
                 )
+                Spacer(Modifier.width(8.dp))
 
                 val badgeColor = when {
-                    isPendingSync -> Color.White.copy(alpha = 0.1f)
-                    booking.status.lowercase() == "cancelled" -> Color(0xFF3E1F1F)
+                    isPendingSync -> colors.onSurface.copy(alpha = 0.1f)
+                    booking.status.lowercase() == "cancelled" -> colors.errorContainer
                     booking.status.lowercase() == "completed" -> Color(0xFF1F3E2E)
-                    else -> Color.White.copy(alpha = 0.1f)
+                    else -> colors.onSurface.copy(alpha = 0.1f)
                 }
                 val badgeTextColor = when {
-                    isPendingSync -> AccentAmber
-                    booking.status.lowercase() == "cancelled" -> Color(0xFFEF4444)
+                    isPendingSync -> colors.primary
+                    booking.status.lowercase() == "cancelled" -> colors.error
                     booking.status.lowercase() == "completed" -> Color(0xFF10B981)
-                    else -> TextMuted
+                    else -> colors.tertiary
                 }
 
                 Box(
@@ -405,54 +307,33 @@ private fun BookingCard(
             Spacer(Modifier.height(16.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.CalendarMonth,
-                    contentDescription = null,
-                    tint = AccentAmber,
-                    modifier = Modifier.size(16.dp)
-                )
+                Icon(Icons.Default.CalendarMonth, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
                     booking.dateFormatted.ifBlank { booking.date },
-                    color = TextMuted,
+                    color = colors.tertiary,
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.width(16.dp))
-                Icon(
-                    Icons.Default.AccessTime,
-                    contentDescription = null,
-                    tint = AccentAmber,
-                    modifier = Modifier.size(16.dp)
-                )
+                Icon(Icons.Default.AccessTime, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
-                Text(
-                    booking.time,
-                    color = TextMuted,
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                Text(booking.time, color = colors.tertiary, style = MaterialTheme.typography.bodyMedium)
             }
 
             Spacer(Modifier.height(8.dp))
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(
-                    Icons.Default.LocationOn,
-                    contentDescription = null,
-                    tint = AccentAmber,
-                    modifier = Modifier.size(16.dp)
-                )
+                Icon(Icons.Default.LocationOn, contentDescription = null, tint = colors.primary, modifier = Modifier.size(16.dp))
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "${booking.type}${if (booking.type == "Outcall" && booking.location.isNotBlank()) " — ${booking.location}" else ""}",
-                    color = TextMuted,
+                    "${booking.type}${if (booking.type == "Out-call" && booking.location.isNotBlank()) " — ${booking.location}" else ""}",
+                    color = colors.tertiary,
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
 
             Spacer(Modifier.height(20.dp))
-
-            HorizontalDivider(color = Color.White.copy(alpha = 0.05f))
-
+            HorizontalDivider(color = colors.onSurface.copy(alpha = 0.05f))
             Spacer(Modifier.height(20.dp))
 
             Row(
@@ -463,7 +344,7 @@ private fun BookingCard(
                 Text(
                     "R${booking.price}",
                     style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
+                    color = colors.onSurface,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -471,16 +352,16 @@ private fun BookingCard(
                     isPendingSync -> Text(
                         stringResource(R.string.status_pending_sync),
                         style = MaterialTheme.typography.labelSmall,
-                        color = TextMuted
+                        color = colors.tertiary
                     )
                     booking.status.equals("pending", ignoreCase = true) ||
                             booking.status.equals("upcoming", ignoreCase = true) -> {
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             TextButton(onClick = onRescheduleClick) {
-                                Text(stringResource(R.string.action_reschedule), color = AccentAmber)
+                                Text(stringResource(R.string.action_reschedule), color = colors.primary)
                             }
                             TextButton(onClick = onCancelClick) {
-                                Text(stringResource(R.string.action_cancel), color = Color.Red.copy(alpha = 0.7f))
+                                Text(stringResource(R.string.action_cancel), color = colors.error)
                             }
                         }
                     }

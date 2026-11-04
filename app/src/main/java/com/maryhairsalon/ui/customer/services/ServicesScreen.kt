@@ -2,42 +2,46 @@ package com.maryhairsalon.ui.customer.services
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.AsyncImage
 import com.maryhairsalon.data.models.Category
 import com.maryhairsalon.data.models.Service
-import androidx.compose.foundation.lazy.grid.GridItemSpan
-import com.maryhairsalon.ui.theme.AccentAmber
+import com.maryhairsalon.ui.components.SalonBrandRow
+import com.maryhairsalon.ui.components.SalonHeroHeader
+import com.maryhairsalon.ui.components.SalonSearchField
+import com.maryhairsalon.ui.components.SimpleFixedTopBar
+import com.maryhairsalon.ui.components.rememberTopScreenGradient
 import com.maryhairsalon.ui.theme.AccentAmberLight
 import com.maryhairsalon.ui.theme.AccentDeep
-import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.SurfaceLighter
-import com.maryhairsalon.ui.theme.TextMuted
+import androidx.compose.material.icons.filled.ContentCut
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.systemBars
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ServicesScreen(
     viewModel: ServicesViewModel = viewModel(),
@@ -45,124 +49,54 @@ fun ServicesScreen(
     onMenuClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val colors = MaterialTheme.colorScheme
 
+    // contentWindowInsets = 0: we're opting out of Scaffold's automatic top
+    // inset handling entirely so the gradient can paint under the status
+    // bar. Each branch below applies statusBarsPadding itself where needed.
     Scaffold(
-        containerColor = BackgroundDeep,
-        topBar = {
-            CenterAlignedTopAppBar(
-                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = BackgroundDeep,
-                    titleContentColor = Color.White
-                ),
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Box(
-                            modifier = Modifier
-                                .size(32.dp)
-                                .padding(4.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text("♕", fontSize = 24.sp, color = AccentAmber)
-                        }
-                        Spacer(Modifier.width(8.dp))
-                        Column {
-                            Text(
-                                "Mary",
-                                style = MaterialTheme.typography.titleLarge,
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                "Hair salon",
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextMuted,
-                                fontSize = 10.sp
-                            )
-                        }
-                    }
-                },
-                navigationIcon = {},
-                actions = {
-                    IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu", tint = Color.White)
-                    }
-                }
-            )
-        }
+        containerColor = colors.background,
+        // Only the top inset is zeroed — that's what lets the gradient bleed
+        // behind the status bar. Bottom and horizontal keep their normal
+        // system-bar-aware values, so the grid still reserves space above the
+        // tab bar instead of running underneath it.
+        contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
     ) { padding ->
-        Column(modifier = Modifier.padding(padding).fillMaxSize()) {
-
-            OutlinedTextField(
-                value = uiState.searchQuery,
-                onValueChange = viewModel::setSearchQuery,
-                placeholder = { Text("Search services or styles...", color = TextMuted) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null, tint = AccentAmber) },
-                trailingIcon = {
-                    if (uiState.searchQuery.isNotEmpty()) {
-                        IconButton(onClick = { viewModel.setSearchQuery("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Clear search", tint = TextMuted)
-                        }
-                    }
-                },
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = AccentAmber,
-                    unfocusedBorderColor = Color.White.copy(alpha = 0.1f),
-                    focusedContainerColor = SurfaceLighter,
-                    unfocusedContainerColor = SurfaceLighter,
-                    focusedTextColor = Color.White,
-                    unfocusedTextColor = Color.White
-                ),
-                modifier = Modifier.fillMaxWidth().padding(16.dp)
-            )
-
+        Box(Modifier.padding(padding).fillMaxSize()) {
             when {
                 uiState.isLoading -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    CircularProgressIndicator(color = AccentAmber)
+                    CircularProgressIndicator(color = colors.primary)
                 }
                 uiState.errorMessage != null -> Box(Modifier.fillMaxSize(), Alignment.Center) {
-                    Text(uiState.errorMessage!!, color = Color.White)
+                    Text(uiState.errorMessage!!, color = colors.onBackground)
                 }
-                uiState.view == CatalogView.SEARCH -> {
+                uiState.view == CatalogView.SEARCH -> Column(Modifier.fillMaxSize()) {
+                    SimpleFixedTopBar(onMenuClick) {}
+                    Box(Modifier.padding(horizontal = 16.dp)) {
+                        SalonSearchField(uiState.searchQuery, viewModel::setSearchQuery, placeholder = "Search...")
+                    }
                     val results = viewModel.searchResults
                     if (results.isEmpty()) {
                         Box(Modifier.fillMaxSize(), Alignment.Center) {
-                            Text("No services match your search — try a different term.", color = TextMuted)
+                            Text("No services match your search — try a different term.", color = colors.tertiary)
                         }
-                    } else {
-                        ServiceList(services = results, onBookNow = onBookNow)
-                    }
+                    } else ServiceList(results, onBookNow)
                 }
-                uiState.view == CatalogView.CATEGORY_DETAIL -> {
+                uiState.view == CatalogView.CATEGORY_DETAIL -> Column(Modifier.fillMaxSize()) {
                     val category = viewModel.selectedCategory
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    SimpleFixedTopBar(onMenuClick) {
                         IconButton(onClick = viewModel::backToCategories) {
-                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "All categories", tint = AccentAmber)
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "All categories", tint = colors.primary)
                         }
-                        Text(category?.label ?: "", style = MaterialTheme.typography.titleLarge, color = Color.White)
+                        Text(category?.label ?: "", style = MaterialTheme.typography.titleLarge, color = colors.onBackground)
                     }
-                    Spacer(Modifier.height(8.dp))
-                    ServiceList(services = viewModel.selectedCategoryServices, onBookNow = onBookNow)
+                    ServiceList(viewModel.selectedCategoryServices, onBookNow)
                 }
-                else -> CategoryGrid(
-                    categories = uiState.categories,
+                else -> CategoriesWithHero(
+                    uiState = uiState,
+                    onMenuClick = onMenuClick,
                     onCategoryClick = viewModel::openCategory,
-                    header = {
-                        Column(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("OUR SERVICES", style = MaterialTheme.typography.labelMedium, color = AccentAmber, fontWeight = FontWeight.Bold)
-                            Spacer(Modifier.height(8.dp))
-                            Text("Find Your Perfect Style", style = MaterialTheme.typography.displayLarge, color = Color.White, textAlign = TextAlign.Center)
-                            Spacer(Modifier.height(8.dp))
-                            Text("Pick a category to see everything on offer, or search for a style by name.", style = MaterialTheme.typography.bodyMedium, color = TextMuted, textAlign = TextAlign.Center)
-                        }
-                    }
+                    onSearchChange = viewModel::setSearchQuery
                 )
             }
         }
@@ -170,45 +104,150 @@ fun ServicesScreen(
 }
 
 @Composable
-private fun CategoryGrid(
-    categories: List<Category>,
+private fun CategoriesWithHero(
+    uiState: ServicesUiState,
+    onMenuClick: () -> Unit,
     onCategoryClick: (String) -> Unit,
-    header: @Composable () -> Unit
+    onSearchChange: (String) -> Unit
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 160.dp),
-        contentPadding = PaddingValues(16.dp),
-        horizontalArrangement = Arrangement.spacedBy(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        item(span = { GridItemSpan(maxLineSpan) }) { header() }
-        items(categories, key = { it.id }) { category ->
-            Card(
-                onClick = { onCategoryClick(category.id) },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceLighter)
+    val gridState = rememberLazyGridState()
+    val armed by remember { derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
+
+    // The floating field should only appear while the user scrolls back up.
+    // On downward scrolling, remove it from composition entirely instead of
+    // relying on an offset that can leave part of the field visible on some devices.
+    val floatingSearchVisible = remember { mutableStateOf(true) }
+    val currentArmed = rememberUpdatedState(armed)
+    val connection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                when {
+                    available.y < -1f -> floatingSearchVisible.value = false // scrolling down
+                    available.y > 1f && currentArmed.value -> floatingSearchVisible.value = true // scrolling up
+                }
+                return Offset.Zero
+            }
+        }
+    }
+
+    // Keep the movable search field stable while ensuring it always reads the
+    // latest query and callback. Capturing uiState/onSearchChange directly inside
+    // remember { ... } can leave the field using values from its first composition.
+    val currentSearchQuery = rememberUpdatedState(uiState.searchQuery)
+    val currentOnSearchChange = rememberUpdatedState(onSearchChange)
+
+    val searchField = remember {
+        movableContentOf<Boolean> { elevated ->
+            SalonSearchField(
+                value = currentSearchQuery.value,
+                onValueChange = { currentOnSearchChange.value(it) },
+                elevated = elevated
+            )
+        }
+    }
+
+    val gradient = rememberTopScreenGradient()
+
+    Box(Modifier.fillMaxSize().background(gradient).nestedScroll(connection)) {
+        LazyVerticalGrid(
+            state = gridState,
+            modifier = Modifier.statusBarsPadding(), // content clears the status bar; the gradient behind it doesn't
+            columns = GridCells.Adaptive(minSize = 160.dp),
+            contentPadding = PaddingValues(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // Brand row is now just ordinary scrolling content — item 0 — no
+            // background, no fixed position. It scrolls away with everything
+            // else, same as any other item in this list.
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                SalonBrandRow(onMenuClick = onMenuClick, modifier = Modifier.padding(bottom = 12.dp))
+            }
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                SalonHeroHeader(
+                    title = "Find Your Perfect Style",
+                    eyebrow = "OUR SERVICES",
+                    subtitle = "Pick a category to see everything on offer, or search for a style by name.",
+                    searchContent = if (!armed) {
+                        { searchField(false) }
+                    } else null
+                )
+            }
+            items(uiState.categories, key = { it.id }) { category ->
+                CategoryCard(category, onClick = { onCategoryClick(category.id) })
+            }
+        }
+
+        // The floating search field is shown only when the list is armed and
+        // the user is scrolling upward. When scrolling downward, it is removed
+        // completely, so it cannot remain partially visible on shorter/taller screens.
+        if (armed && floatingSearchVisible.value) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .statusBarsPadding()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Column {
+                searchField(true)
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryCard(category: Category, onClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Card(
+        onClick = onClick,
+        // Fixed height — every card in the grid now lines up regardless of
+        // whether it has a description, so a row never leaves a dead gap
+        // below its shorter neighbor.
+        modifier = Modifier.fillMaxWidth().height(230.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = colors.surface)
+    ) {
+        Column(Modifier.fillMaxSize()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(110.dp)
+                    .background(colors.onSurface.copy(alpha = 0.06f)),
+                contentAlignment = Alignment.Center
+            ) {
+                if (category.image.isNotBlank()) {
                     AsyncImage(
                         model = category.image,
                         contentDescription = category.label,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxWidth().height(120.dp)
+                        modifier = Modifier.fillMaxSize()
                     )
-                    Column(Modifier.padding(12.dp)) {
-                        Text(category.label, style = MaterialTheme.typography.titleMedium, color = Color.White)
-                        if (category.desc.isNotBlank()) {
-                            Text(category.desc, style = MaterialTheme.typography.bodySmall, color = TextMuted, maxLines = 2)
-                        }
-                        Spacer(Modifier.height(8.dp))
-                        Text(
-                            "${category.count} service${if (category.count == 1) "" else "s"}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = AccentAmber
-                        )
+                } else {
+                    // No blank void anymore — a category with no photo yet
+                    // still reads as "a card", not "something broken".
+                    Icon(
+                        Icons.Default.ContentCut,
+                        contentDescription = null,
+                        tint = colors.tertiary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+            }
+            Column(
+                modifier = Modifier.fillMaxWidth().weight(1f).padding(12.dp),
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column {
+                    Text(category.label, style = MaterialTheme.typography.titleMedium, color = colors.onSurface, maxLines = 1)
+                    if (category.desc.isNotBlank()) {
+                        Spacer(Modifier.height(4.dp))
+                        Text(category.desc, style = MaterialTheme.typography.bodySmall, color = colors.tertiary, maxLines = 2)
                     }
                 }
+                Text(
+                    "${category.count} service${if (category.count == 1) "" else "s"}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = colors.primary
+                )
             }
         }
     }
@@ -216,63 +255,42 @@ private fun CategoryGrid(
 
 @Composable
 private fun ServiceList(services: List<Service>, onBookNow: (Service) -> Unit) {
-    LazyColumn(
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
+    val colors = MaterialTheme.colorScheme
+    LazyColumn(contentPadding = PaddingValues(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         items(services, key = { it.id }) { service ->
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = SurfaceLighter)
+                colors = CardDefaults.cardColors(containerColor = colors.surface)
             ) {
                 Row(Modifier.padding(12.dp)) {
                     AsyncImage(
                         model = service.image,
                         contentDescription = service.title,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier.size(80.dp).background(Color.White.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
+                        modifier = Modifier.size(80.dp).background(colors.onSurface.copy(alpha = 0.05f), RoundedCornerShape(8.dp))
                     )
                     Spacer(Modifier.width(16.dp))
                     Column(Modifier.weight(1f)) {
-                        Text(service.title, style = MaterialTheme.typography.titleMedium, color = Color.White)
+                        Text(service.title, style = MaterialTheme.typography.titleMedium, color = colors.onSurface)
                         if (service.description.isNotBlank()) {
-                            Text(
-                                service.description,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = TextMuted,
-                                maxLines = 2
-                            )
+                            Text(service.description, style = MaterialTheme.typography.bodySmall, color = colors.tertiary, maxLines = 2)
                         }
                         if (service.tags.isNotEmpty()) {
-                            Text(
-                                service.tags.joinToString(" · "),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = AccentAmber
-                            )
+                            Text(service.tags.joinToString(" · "), style = MaterialTheme.typography.labelSmall, color = colors.primary)
                         }
                         Spacer(Modifier.height(12.dp))
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text("R${service.price}", style = MaterialTheme.typography.titleSmall, color = Color.White)
+                        Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
+                            Text("R${service.price}", style = MaterialTheme.typography.titleSmall, color = colors.onSurface)
                             Button(
                                 onClick = { onBookNow(service) },
-                                modifier = Modifier
-                                    .background(
-                                        brush = Brush.horizontalGradient(listOf(AccentDeep, AccentAmberLight)),
-                                        shape = RoundedCornerShape(12.dp)
-                                    ),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Transparent,
-                                    contentColor = BackgroundDeep
+                                modifier = Modifier.background(
+                                    brush = Brush.horizontalGradient(listOf(AccentDeep, AccentAmberLight)),
+                                    shape = RoundedCornerShape(12.dp)
                                 ),
+                                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent, contentColor = Color.White),
                                 elevation = ButtonDefaults.buttonElevation(0.dp)
-                            ) {
-                                Text("Book Now", fontWeight = FontWeight.Bold)
-                            }
+                            ) { Text("Book Now", fontWeight = FontWeight.Bold) }
                         }
                     }
                 }

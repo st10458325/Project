@@ -7,11 +7,25 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.ContentCut
@@ -20,8 +34,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.*
@@ -39,9 +51,6 @@ import com.maryhairsalon.ui.customer.services.ServicesScreen
 import com.maryhairsalon.ui.employee.EmployeeDashboardScreen
 import com.maryhairsalon.ui.manager.ManagerDashboardScreen
 import com.maryhairsalon.ui.theme.MaryHairSalonTheme
-import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.AccentAmber
-import com.maryhairsalon.ui.theme.TextMuted
 import kotlinx.coroutines.launch
 import androidx.compose.material.icons.filled.Group
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -52,23 +61,28 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withTimeoutOrNull
 import androidx.compose.ui.res.stringResource
 import com.maryhairsalon.R
+import com.maryhairsalon.data.local.ThemeMode
 import com.maryhairsalon.ui.components.VerifyEmailBanner
+import com.maryhairsalon.data.local.ThemePreferences
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // Request notification permissions for Android 13+ (Tiramisu)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 requestPermissions(arrayOf(android.Manifest.permission.POST_NOTIFICATIONS), 1001)
             }
         }
-        
+
         enableEdgeToEdge()
         setContent {
-            MaryHairSalonTheme {
+            val themePreferences = remember { ThemePreferences(applicationContext) }
+            val themeMode by themePreferences.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+
+            MaryHairSalonTheme(themeMode = themeMode) {
                 val rootNavController = rememberNavController()
-                
+
                 // Determine initial screen based on whether a user is already authenticated
                 val startDestination =
                     if (FirebaseAuth.getInstance().currentUser != null) "loading" else "login"
@@ -187,6 +201,10 @@ private fun MainScreen(onLogout: () -> Unit) {
     val authViewModel: AuthViewModel = viewModel()
     val authUiState by authViewModel.uiState.collectAsState()
 
+    val backStackEntry by tabNavController.currentBackStackEntryAsState()
+    val currentRoute = backStackEntry?.destination?.route
+    val isBookingForm = currentRoute?.startsWith("booking?") == true
+
     // Helper function for navigating between main tabs while preserving state
     fun navigateToTab(route: String) {
         tabNavController.navigate(route) {
@@ -199,6 +217,7 @@ private fun MainScreen(onLogout: () -> Unit) {
     RightNavigationDrawer(
         drawerState = drawerState,
         user = authUiState.userProfile,
+        gesturesEnabled = !isBookingForm,
         onSettingsClick = {
             scope.launch { drawerState.close() }
             tabNavController.navigate("settings")
@@ -207,50 +226,53 @@ private fun MainScreen(onLogout: () -> Unit) {
     ) {
         Scaffold(
             bottomBar = {
-                val backStackEntry by tabNavController.currentBackStackEntryAsState()
-                val currentRoute = backStackEntry?.destination?.route
-
-                // Only show bottom navigation on the main top-level tabs
+                val colors = MaterialTheme.colorScheme
                 if (currentRoute == "services" || currentRoute == "about" || currentRoute == "bookings") {
-                    NavigationBar(
-                        containerColor = BackgroundDeep,
-                        contentColor = TextMuted,
-                        tonalElevation = 0.dp,
-                        modifier = Modifier.height(75.dp)
+                    // Keep the whole bottom section compact INCLUDING the system
+                    // navigation inset. The old 64.dp row plus navigationBarsPadding()
+                    // made the total height 64.dp + the device's inset, which is
+                    // especially noticeable on phones with taller navigation areas.
+                    val bottomInset = WindowInsets.navigationBars
+                        .asPaddingValues()
+                        .calculateBottomPadding()
+                    val targetTotalHeight = 68.dp
+                    val itemRowHeight = (targetTotalHeight - bottomInset).coerceAtLeast(44.dp)
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(colors.background)
                     ) {
-                        NavigationBarItem(
-                            selected = currentRoute == "services",
-                            onClick = { navigateToTab("services") },
-                            icon = { Icon(Icons.Default.ContentCut, contentDescription = null) },
-                            label = { Text(stringResource(R.string.nav_services)) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
-                                unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
-                                indicatorColor = Color.Transparent
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(itemRowHeight),
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            CompactNavigationItem(
+                                selected = currentRoute == "services",
+                                icon = Icons.Default.ContentCut,
+                                label = stringResource(R.string.nav_services),
+                                onClick = { navigateToTab("services") }
                             )
-                        )
-                        NavigationBarItem(
-                            selected = currentRoute == "about",
-                            onClick = { navigateToTab("about") },
-                            icon = { Icon(Icons.Default.Group, contentDescription = null) },
-                            label = { Text(stringResource(R.string.nav_about)) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
-                                unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
-                                indicatorColor = Color.Transparent
+                            CompactNavigationItem(
+                                selected = currentRoute == "about",
+                                icon = Icons.Default.Group,
+                                label = stringResource(R.string.nav_about),
+                                onClick = { navigateToTab("about") }
                             )
-                        )
-                        NavigationBarItem(
-                            selected = currentRoute == "bookings",
-                            onClick = { navigateToTab("bookings") },
-                            icon = { Icon(Icons.Default.CalendarMonth, contentDescription = null) },
-                            label = { Text(stringResource(R.string.nav_bookings)) },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = AccentAmber, selectedTextColor = AccentAmber,
-                                unselectedIconColor = TextMuted, unselectedTextColor = TextMuted,
-                                indicatorColor = Color.Transparent
+                            CompactNavigationItem(
+                                selected = currentRoute == "bookings",
+                                icon = Icons.Default.CalendarMonth,
+                                label = stringResource(R.string.nav_bookings),
+                                onClick = { navigateToTab("bookings") }
                             )
-                        )
+                        }
+                        // Paint the same background behind Android's gesture or
+                        // three-button navigation area, but include it in the
+                        // target total height instead of adding it on top.
+                        Spacer(Modifier.height(bottomInset))
                     }
                 }
             }
@@ -305,7 +327,15 @@ private fun MainScreen(onLogout: () -> Unit) {
                             prefillStyle = backStackEntry.arguments?.getString("style"),
                             prefillPrice = backStackEntry.arguments?.getString("price"),
                             prefillBookingId = backStackEntry.arguments?.getString("bookingId"),
-                            onDone = { navigateToTab("bookings") },
+                            onDone = {
+                                tabNavController.navigate("bookings") {
+                                    popUpTo(tabNavController.graph.findStartDestination().id) {
+                                        inclusive = false
+                                    }
+                                    launchSingleTop = true
+                                    // no saveState / restoreState: we want the form gone for good
+                                }
+                            },
                             onCancel = { tabNavController.popBackStack() },
                         )
                     }
@@ -317,6 +347,43 @@ private fun MainScreen(onLogout: () -> Unit) {
         }
     }
 }
+
+/** A compact bottom-navigation destination with no large Material nav-bar padding. */
+@Composable
+private fun RowScope.CompactNavigationItem(
+    selected: Boolean,
+    icon: ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    val colors = MaterialTheme.colorScheme
+    val itemColor = if (selected) colors.primary else colors.tertiary
+
+    Column(
+        modifier = Modifier
+            .weight(1f)
+            .fillMaxHeight()
+            .clickable(onClick = onClick)
+            .padding(vertical = 2.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = itemColor,
+            modifier = Modifier.size(22.dp)
+        )
+        Spacer(Modifier.height(3.dp))
+        Text(
+            text = label,
+            color = itemColor,
+            style = MaterialTheme.typography.labelSmall,
+            maxLines = 1
+        )
+    }
+}
+
 @Composable
 private fun EmployeeMainScreen(onLogout: () -> Unit) {
     val navController = rememberNavController()

@@ -28,6 +28,8 @@ import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
 import com.maryhairsalon.ui.theme.SurfaceLighter
 import com.maryhairsalon.ui.theme.TextMuted
+import com.maryhairsalon.data.local.ThemeMode
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -144,6 +146,41 @@ fun SettingsScreen(
                         CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp, color = BackgroundDeep)
                     } else {
                         Text(stringResource(R.string.action_change_password), fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+
+
+            SectionCard(title = "Appearance") {
+                Text(
+                    "Choose how Mary Hair Salon looks on this device.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextMuted
+                )
+                Spacer(Modifier.height(12.dp))
+
+                val themeOptions = listOf(
+                    ThemeMode.SYSTEM to "Match system",
+                    ThemeMode.LIGHT to "Light",
+                    ThemeMode.DARK to "Dark"
+                )
+
+                themeOptions.forEach { (mode, label) ->
+                    val selected = uiState.themeMode == mode
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .selectable(selected = selected, onClick = { viewModel.setThemeMode(mode) })
+                            .padding(vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        RadioButton(
+                            selected = selected,
+                            onClick = { viewModel.setThemeMode(mode) },
+                            colors = RadioButtonDefaults.colors(selectedColor = AccentAmber, unselectedColor = TextMuted)
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(label, color = Color.White)
                     }
                 }
             }

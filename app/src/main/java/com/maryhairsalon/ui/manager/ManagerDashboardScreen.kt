@@ -1,5 +1,6 @@
 package com.maryhairsalon.ui.manager
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,6 +31,7 @@ import com.maryhairsalon.data.models.User
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.TextMuted
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import com.maryhairsalon.ui.theme.BackgroundDeep
@@ -56,7 +58,11 @@ fun ManagerDashboardScreen(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(Modifier.size(32.dp).padding(4.dp), contentAlignment = Alignment.Center) {
-                            Text("♕", fontSize = 24.sp, color = AccentAmber)
+                            Image(
+                                painter = painterResource(R.drawable.icon),
+                                contentDescription = "Mary Hair Salon",
+                                modifier = Modifier.size(32.dp)   // 64.dp on Login/Signup
+                            )
                         }
                         Spacer(Modifier.width(8.dp))
                         Column {

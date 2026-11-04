@@ -1,8 +1,6 @@
 package com.maryhairsalon.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
@@ -13,36 +11,33 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.maryhairsalon.data.models.User
-import com.maryhairsalon.ui.theme.AccentAmber
-import com.maryhairsalon.ui.theme.BackgroundDeep
-import com.maryhairsalon.ui.theme.SurfaceLighter
-import com.maryhairsalon.ui.theme.TextMuted
-import androidx.compose.ui.res.stringResource
 import com.maryhairsalon.R
+import com.maryhairsalon.data.models.User
 
 @Composable
 fun RightNavigationDrawer(
     drawerState: DrawerState,
     user: User?,
+    gesturesEnabled: Boolean = true,
     onSettingsClick: () -> Unit,
     onLogout: () -> Unit,
     content: @Composable () -> Unit
 ) {
+    val colors = MaterialTheme.colorScheme
     CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Rtl) {
         ModalNavigationDrawer(
             drawerState = drawerState,
+            gesturesEnabled = gesturesEnabled,
             drawerContent = {
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     ModalDrawerSheet(
                         modifier = Modifier.width(300.dp).fillMaxHeight(),
-                        drawerContainerColor = BackgroundDeep,
+                        drawerContainerColor = colors.background,
                         drawerShape = RoundedCornerShape(topStart = 16.dp, bottomStart = 16.dp)
                     ) {
                         Column(
@@ -55,19 +50,19 @@ fun RightNavigationDrawer(
                                 imageVector = Icons.Default.AccountCircle,
                                 contentDescription = "Account",
                                 modifier = Modifier.size(80.dp),
-                                tint = AccentAmber
+                                tint = colors.primary
                             )
                             Spacer(Modifier.height(16.dp))
                             Text(
                                 text = user?.name ?: "User",
                                 style = MaterialTheme.typography.headlineSmall,
-                                color = Color.White,
+                                color = colors.onBackground,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
                                 text = user?.email ?: "",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = TextMuted
+                                color = colors.tertiary
                             )
 
                             Spacer(Modifier.weight(1f))
@@ -75,7 +70,7 @@ fun RightNavigationDrawer(
                             OutlinedButton(
                                 onClick = onSettingsClick,
                                 modifier = Modifier.fillMaxWidth(),
-                                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentAmber),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = colors.primary),
                                 shape = RoundedCornerShape(12.dp)
                             ) {
                                 Icon(Icons.Default.Settings, contentDescription = null)
@@ -85,7 +80,7 @@ fun RightNavigationDrawer(
 
                             Spacer(Modifier.height(12.dp))
 
-                            HorizontalDivider(color = Color.White.copy(alpha = 0.1f))
+                            HorizontalDivider(color = colors.onBackground.copy(alpha = 0.1f))
 
                             Spacer(Modifier.height(16.dp))
 
@@ -93,8 +88,8 @@ fun RightNavigationDrawer(
                                 onClick = onLogout,
                                 modifier = Modifier.fillMaxWidth(),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color.Red.copy(alpha = 0.1f),
-                                    contentColor = Color.Red
+                                    containerColor = colors.error.copy(alpha = 0.1f),
+                                    contentColor = colors.error
                                 ),
                                 shape = RoundedCornerShape(12.dp)
                             ) {

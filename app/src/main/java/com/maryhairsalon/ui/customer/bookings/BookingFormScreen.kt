@@ -50,6 +50,7 @@ fun BookingFormScreen(
     viewModel: BookingFormViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showSavedDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         when {
@@ -58,7 +59,7 @@ fun BookingFormScreen(
         }
     }
     LaunchedEffect(uiState.submitted) {
-        if (uiState.submitted) onDone()
+        if (uiState.submitted) showSavedDialog = true
     }
     Scaffold(
         topBar = {
@@ -193,6 +194,26 @@ fun BookingFormScreen(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
+    }
+
+    if (showSavedDialog) {
+        AlertDialog(
+            onDismissRequest = { showSavedDialog = false; onDone() },
+            title = {
+                Text(if (uiState.editingBookingId != null) "Changes saved" else "Booking confirmed")
+            },
+            text = {
+                Text(
+                    if (uiState.editingBookingId != null)
+                        "Your appointment has been updated and is waiting for your stylist to confirm."
+                    else
+                        "Your booking has been sent to your stylist for confirmation."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { showSavedDialog = false; onDone() }) { Text("OK") }
+            }
+        )
     }
 }
 
