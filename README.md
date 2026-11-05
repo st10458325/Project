@@ -1,6 +1,6 @@
 # Mary Hair Salon — Android Application
 
-![Android CI](https://github.com/st10458325/Mary-Hair-Salon-Application/actions/workflows/android-ci.yml/badge.svg)
+![Android CI](https://github.com/st10458325/Project/actions/workflows/android-ci.yml/badge.svg)
 
 A native Android app for **Mary Hair Salon** built with **Kotlin**, **Jetpack Compose**, **Material 3** and **Firebase**. It serves three roles — **Customers**, **Employees (stylists)** and **Managers** — with offline support, live push notifications, four external API integrations and three languages.
 
