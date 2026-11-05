@@ -1,37 +1,58 @@
 package com.maryhairsalon.util
 
+import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
+import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+/**
+ * Verifies that raw Firebase exceptions are translated into friendly,
+ * user-safe messages. MockK stands in for the Firebase exception classes
+ * so the tests run on the plain JVM (no emulator needed — important for CI).
+ */
 class AuthErrorMapperTest {
 
-    // Firebase's own exception classes often don't expose public constructors,
-    // so we use MockK to create a real instance of that type without calling
-    // one — this sidesteps that entirely rather than fighting it.
     @Test
-    fun `collision exception maps to already-registered message`() {
-        val exception = mockk<FirebaseAuthUserCollisionException>()
-        assertEquals(
-            "That email is already registered — try logging in instead.",
-            friendlyAuthError(exception)
-        )
+    fun `existing email maps to already-registered message`() {
+        val e = mockk<FirebaseAuthUserCollisionException>()
+        assertEquals("That email is already registered — try logging in instead.", friendlyAuthError(e))
     }
 
     @Test
-    fun `TOO_MANY_ATTEMPTS message maps to rate-limit warning`() {
-        assertEquals(
-            "Too many attempts — please wait a moment and try again.",
-            friendlyAuthError(Exception("TOO_MANY_ATTEMPTS: blocked"))
-        )
+    fun `wrong password maps to incorrect credentials message`() {
+        val e = mockk<FirebaseAuthInvalidCredentialsException>()
+        assertEquals("Incorrect email or password.", friendlyAuthError(e))
     }
 
     @Test
-    fun `unrecognized exception falls back to generic message`() {
-        assertEquals(
-            "Something went wrong. Please try again.",
-            friendlyAuthError(Exception("some unrelated failure"))
-        )
+    fun `unknown user maps to no-account message`() {
+        val e = mockk<FirebaseAuthInvalidUserException>()
+        assertEquals("No account found with that email.", friendlyAuthError(e))
+    }
+
+    @Test
+    fun `weak password maps to length hint`() {
+        val e = mockk<FirebaseAuthWeakPasswordException>()
+        assertEquals("Password should be at least 8 characters.", friendlyAuthError(e))
+    }
+
+    @Test
+    fun `too many attempts is detected from the raw message`() {
+        val e = Exception("We have blocked requests: TOO_MANY_ATTEMPTS_TRY_LATER")
+        assertEquals("Too many attempts — please wait a moment and try again.", friendlyAuthError(e))
+    }
+
+    @Test
+    fun `invalid email is detected from the raw message`() {
+        val e = Exception("INVALID_EMAIL")
+        assertEquals("That doesn't look like a valid email address.", friendlyAuthError(e))
+    }
+
+    @Test
+    fun `anything else falls back to a generic message`() {
+        assertEquals("Something went wrong. Please try again.", friendlyAuthError(Exception("boom")))
     }
 }
