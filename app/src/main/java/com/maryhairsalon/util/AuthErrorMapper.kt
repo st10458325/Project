@@ -9,12 +9,12 @@ import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 fun friendlyAuthError(e: Exception): String = when (e) {
     is FirebaseAuthUserCollisionException ->
         "That email is already registered — try logging in instead."
+    is FirebaseAuthWeakPasswordException ->
+        "Password should be at least 8 characters."
     is FirebaseAuthInvalidCredentialsException ->
         "Incorrect email or password."
     is FirebaseAuthInvalidUserException ->
         "No account found with that email."
-    is FirebaseAuthWeakPasswordException ->
-        "Password should be at least 8 characters."
     else -> {
         val msg = e.message.orEmpty()
         when {
