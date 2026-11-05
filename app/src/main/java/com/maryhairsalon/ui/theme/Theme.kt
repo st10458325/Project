@@ -1,3 +1,9 @@
+/**
+ * Theme.kt
+ *
+ * Root Material 3 theme composable wrapper for Mary Hair Salon.
+ * Integrates light and dark color schemes according to user theme preferences.
+ */
 package com.maryhairsalon.ui.theme
 
 import android.os.Build
@@ -31,29 +37,18 @@ private val LightColorScheme = lightColorScheme(
     secondary = SurfaceLighterLight,
     tertiary = TextMuted,
     background = Color(0xFFFFFBFE),
-    surface = SurfaceLighterLight,   // was Color(0xFFFFFBFE) — matched background, no card contrast
+    surface = SurfaceLighterLight,
     onPrimary = Color.White,
     onSecondary = Color(0xFF1C1B1F),
     onTertiary = Color(0xFF1C1B1F),
     onBackground = Color(0xFF1C1B1F),
     onSurface = Color(0xFF1C1B1F),
     error = Error
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
-    onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
 )
 
 @Composable
 fun MaryHairSalonTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
-    // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
     content: @Composable () -> Unit
 ) {

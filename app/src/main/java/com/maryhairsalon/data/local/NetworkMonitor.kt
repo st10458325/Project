@@ -1,3 +1,9 @@
+/**
+ * NetworkMonitor.kt
+ *
+ * Real-time connectivity monitoring utility for Mary Hair Salon.
+ * Exposes a Kotlin Flow that emits device online/offline status updates.
+ */
 package com.maryhairsalon.data.local
 
 import android.content.Context

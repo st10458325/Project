@@ -1,3 +1,9 @@
+/**
+ * OpenMeteoApi.kt
+ *
+ * Retrofit API interface for fetching daily weather forecast data from api.open-meteo.com.
+ * Supplies temperature min/max and weather status codes for appointment dates.
+ */
 package com.maryhairsalon.data.network
 
 import retrofit2.http.GET

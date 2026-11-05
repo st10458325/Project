@@ -1,3 +1,8 @@
+/**
+ * BookingsScreen.kt
+ *
+ * Customer screen displaying current and past appointments with filtering, cancellation, and reschedule controls.
+ */
 package com.maryhairsalon.ui.customer.bookings
 
 import androidx.compose.foundation.BorderStroke
@@ -46,8 +51,6 @@ fun BookingsScreen(
     val colors = MaterialTheme.colorScheme
     val gradient = rememberTopScreenGradient()
 
-    // Same structure as the Services screen: no top bar, the gradient paints
-    // behind the status bar, and the brand row + hero header scroll with the list.
     Scaffold(
         containerColor = colors.background,
         contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
@@ -176,7 +179,6 @@ private fun FilterSection(
 ) {
     val statuses = listOf("all", "pending", "upcoming", "completed", "cancelled")
 
-    // One line; swipe sideways on narrow screens to reach the rest.
     Row(
         modifier = Modifier
             .fillMaxWidth()

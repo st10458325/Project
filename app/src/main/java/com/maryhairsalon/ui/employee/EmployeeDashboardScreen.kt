@@ -1,3 +1,8 @@
+/**
+ * EmployeeDashboardScreen.kt
+ *
+ * Dashboard screen for salon stylists displaying assigned schedules, appointment accept/decline tools, and profile settings.
+ */
 package com.maryhairsalon.ui.employee
 
 import androidx.compose.foundation.Image
@@ -48,7 +53,7 @@ fun EmployeeDashboardScreen(
                             Image(
                                 painter = painterResource(R.drawable.icon),
                                 contentDescription = "Mary Hair Salon",
-                                modifier = Modifier.size(32.dp)   // 64.dp on Login/Signup
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                         Spacer(Modifier.width(8.dp))
@@ -196,6 +201,7 @@ private fun ScheduleCard(
         }
     }
 }
+
 private fun statusLabel(status: String) = when (status) {
     "pending" -> "Pending"
     "upcoming" -> "Upcoming"

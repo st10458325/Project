@@ -1,3 +1,8 @@
+/**
+ * GoogleSignInButton.kt
+ *
+ * Jetpack Compose composable button invoking Android Credential Manager for Google OAuth sign-in.
+ */
 package com.maryhairsalon.ui.auth
 
 import android.util.Log

@@ -1,3 +1,9 @@
+/**
+ * CountryRepository.kt
+ *
+ * Repository for international country dial codes via RestCountriesApi.
+ * Caches dial code options in memory and provides fallback defaults for offline operation.
+ */
 package com.maryhairsalon.data.repository
 
 import android.util.Log

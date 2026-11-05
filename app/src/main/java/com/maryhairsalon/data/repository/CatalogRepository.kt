@@ -1,3 +1,9 @@
+/**
+ * CatalogRepository.kt
+ *
+ * Repository for managing service categories and individual hair styling services in Firestore.
+ * Supports CRUD operations and real-time reactive snapshot flows for catalog maintenance.
+ */
 package com.maryhairsalon.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore

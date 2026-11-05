@@ -1,3 +1,9 @@
+/**
+ * MarySalonMessagingService.kt
+ *
+ * Firebase Messaging service for handling incoming push notifications and token updates.
+ * Displays high-priority Android notifications for booking updates and status changes.
+ */
 package com.maryhairsalon.notifications
 
 import android.app.NotificationChannel

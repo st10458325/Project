@@ -1,3 +1,8 @@
+/**
+ * LoginScreen.kt
+ *
+ * Compose screen for authenticating existing users via email/password or Google sign-in.
+ */
 package com.maryhairsalon.ui.auth
 
 import androidx.compose.foundation.background
@@ -39,8 +44,6 @@ fun LoginScreen(
         if (uiState.isLoggedIn) onLoggedIn()
     }
 
-    // Box centres the form when it's short and lets it scroll when the screen
-    // is small or the keyboard is open.
     Box(
         modifier = Modifier
             .fillMaxSize()

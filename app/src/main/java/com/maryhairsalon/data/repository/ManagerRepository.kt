@@ -1,3 +1,10 @@
+/**
+ * ManagerRepository.kt
+ *
+ * Repository for salon management operations in Firestore.
+ * Provides all-appointment monitoring, appointment status changes with slot lock updates,
+ * stylist re-assignment, and user role management.
+ */
 package com.maryhairsalon.data.repository
 
 import com.google.firebase.firestore.FieldValue

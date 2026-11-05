@@ -1,3 +1,8 @@
+/**
+ * RightNavigationDrawer.kt
+ *
+ * Right-side navigation drawer layout providing profile info, app settings link, and user logout triggers.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.layout.*

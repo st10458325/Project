@@ -1,3 +1,9 @@
+/**
+ * BookingSyncWorker.kt
+ *
+ * WorkManager Worker and Scheduler for executing background synchronization of pending offline booking actions.
+ * Ensures offline cancellations are retried with exponential backoff once network connectivity returns.
+ */
 package com.maryhairsalon.sync
 
 import android.content.Context

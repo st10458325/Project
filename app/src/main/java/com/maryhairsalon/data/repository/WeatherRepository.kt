@@ -1,3 +1,9 @@
+/**
+ * WeatherRepository.kt
+ *
+ * Repository for obtaining weather forecast information using OpenMeteoApi.
+ * Provides weather forecasts for appointment scheduling at the salon's location.
+ */
 package com.maryhairsalon.data.repository
 
 import android.util.Log

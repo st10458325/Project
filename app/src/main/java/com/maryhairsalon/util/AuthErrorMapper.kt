@@ -1,3 +1,8 @@
+/**
+ * AuthErrorMapper.kt
+ *
+ * Utility functions for transforming raw Firebase Auth exceptions into localized, human-friendly error messages.
+ */
 package com.maryhairsalon.util
 
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException

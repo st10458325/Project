@@ -1,3 +1,8 @@
+/**
+ * SalonScreenChrome.kt
+ *
+ * Suite of reusable UI chrome components: top bars, search fields, brand headers, and gradient background helpers.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.background

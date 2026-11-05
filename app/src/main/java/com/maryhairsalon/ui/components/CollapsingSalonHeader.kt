@@ -1,3 +1,9 @@
+/**
+ * CollapsingSalonHeader.kt
+ *
+ * Collapsing header composable reacting to vertical scroll offset.
+ * Used across Services, Bookings, and About screens to provide smooth header contraction.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.background

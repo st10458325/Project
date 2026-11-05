@@ -1,3 +1,8 @@
+/**
+ * CountryCodePicker.kt
+ *
+ * Dropdown menu picker composable for choosing international calling codes in phone input fields.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.background

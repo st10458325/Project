@@ -1,4 +1,10 @@
-package com.maryhairsalon.locale
+/**
+ * LocaleManager.kt
+ *
+ * Manager object for handling dynamic in-app language selection (English, Afrikaans, Zulu).
+ * Leverages AndroidX AppCompatDelegate per-app locale API to apply language preferences across restarts.
+ */
+package com.maryhairsalon.data.local
 
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat

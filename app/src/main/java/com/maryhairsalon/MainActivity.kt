@@ -1,3 +1,14 @@
+/**
+ * MainActivity.kt
+ *
+ * Primary Activity and UI entry point for the Mary Hair Salon app.
+ * Responsible for:
+ * - Requesting system notification permissions (Android 13+).
+ * - Initializing Jetpack Compose UI content with dynamic theme preferences.
+ * - Authenticating and checking user roles (customer, employee, manager) to route to appropriate main screens.
+ * - Registering device FCM tokens asynchronously for push notifications.
+ * - Hosting customer, employee, and manager navigation graphs and custom drawer/bottom navigation bars.
+ */
 package com.maryhairsalon
 
 import android.content.pm.PackageManager

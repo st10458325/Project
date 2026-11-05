@@ -1,3 +1,8 @@
+/**
+ * Type.kt
+ *
+ * Typography definitions incorporating Playfair Display for headers and Inter for body text via Google Fonts.
+ */
 package com.maryhairsalon.ui.theme
 
 import androidx.compose.material3.Typography
@@ -50,6 +55,6 @@ val Typography = Typography(
         fontFamily = Inter,
         fontWeight = FontWeight.Medium,
         fontSize = 12.sp,
-        letterSpacing = 1.1.sp // Eyebrow text
+        letterSpacing = 1.1.sp
     )
 )

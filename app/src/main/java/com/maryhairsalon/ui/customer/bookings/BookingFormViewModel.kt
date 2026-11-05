@@ -1,3 +1,8 @@
+/**
+ * BookingFormViewModel.kt
+ *
+ * ViewModel orchestrating appointment creation, rescheduling, stylist selection, public holiday checks, and Open-Meteo weather lookups.
+ */
 package com.maryhairsalon.ui.customer.bookings
 
 import androidx.lifecycle.ViewModel
@@ -26,22 +31,16 @@ val TIME_SLOTS = listOf(
     "14:00","15:00","16:00","17:00","18:00","19:00"
 )
 
-/**
- * UI State for the complex booking form.
- * Contains both catalog data (categories, stylists) and user-entered form data.
- */
 data class BookingFormUiState(
     val isLoadingCatalog: Boolean = true,
     val categories: List<Category> = emptyList(),
     val stylesForCategory: List<String> = emptyList(),
     val employees: List<User> = emptyList(),
 
-    // Personal details
     val name: String = "",
     val surname: String = "",
     val contact: String = "",
 
-    // Selection state
     val selectedCategoryId: String? = null,
     val selectedStyle: String? = null,
     val cost: Double = 0.0,
@@ -49,7 +48,7 @@ data class BookingFormUiState(
 
     val selectedEmployeeId: String? = null,
 
-    val bookingType: String = "Outcall", // "Incall" or "Outcall"
+    val bookingType: String = "Outcall",
     val location: String = "",
 
     val viewMonth: YearMonth = YearMonth.now(),
@@ -58,15 +57,11 @@ data class BookingFormUiState(
 
     val notes: String = "",
 
-    // Public holidays for the selectable range, date -> holiday name.
-    // Sourced from Nager.Date; days present here are blocked out on the calendar.
     val publicHolidays: Map<LocalDate, String> = emptyMap(),
 
-    // Weather forecast for the selected date (only available ~16 days out).
     val weatherForecast: DayForecast? = null,
     val isLoadingWeather: Boolean = false,
 
-    // Form status
     val editingBookingId: String? = null,
     val isSubmitting: Boolean = false,
     val errorMessage: String? = null,
@@ -97,7 +92,6 @@ class BookingFormViewModel(
     private fun loadPublicHolidays() {
         viewModelScope.launch {
             val thisYear = LocalDate.now().year
-            // Cover this year and next, since the calendar can be paged forward past December.
             val holidays = holidayRepository.getHolidays(thisYear) + holidayRepository.getHolidays(thisYear + 1)
             _uiState.value = _uiState.value.copy(publicHolidays = holidays)
         }
@@ -123,7 +117,6 @@ class BookingFormViewModel(
         }
     }
 
-    /** Looks up the live cost/discount for a category+style from the catalog — never trusts client-entered values. */
     private fun resolvePricing(categoryId: String?, style: String?): Pair<Double, Double> {
         val service = servicesByCategory[categoryId]?.find { it.title == style } ?: return 0.0 to 0.0
         val numericCost = Regex("\\d+(\\.\\d+)?").find(service.price)?.value?.toDoubleOrNull() ?: 0.0
@@ -231,10 +224,6 @@ class BookingFormViewModel(
             return state.cost - (state.cost * state.discount / 100)
         }
 
-    /**
-     * Validates and saves the booking to Firestore.
-     * Handles both new bookings and updates to existing ones.
-     */
     fun submit() {
         val state = _uiState.value
         val uid = auth.currentUser?.uid

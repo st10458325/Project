@@ -1,3 +1,9 @@
+/**
+ * AdviceRepository.kt
+ *
+ * Repository for fetching random advice tips using AdviceSlipApi.
+ * Catches network exceptions gracefully so UI card components fail silently.
+ */
 package com.maryhairsalon.data.repository
 
 import android.util.Log

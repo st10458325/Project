@@ -1,3 +1,8 @@
+/**
+ * ManagerDashboardScreen.kt
+ *
+ * Salon management screen featuring tabs for salon-wide booking overview, staff user role promotion, and catalog service editing.
+ */
 package com.maryhairsalon.ui.manager
 
 import androidx.compose.foundation.Image
@@ -61,7 +66,7 @@ fun ManagerDashboardScreen(
                             Image(
                                 painter = painterResource(R.drawable.icon),
                                 contentDescription = "Mary Hair Salon",
-                                modifier = Modifier.size(32.dp)   // 64.dp on Login/Signup
+                                modifier = Modifier.size(32.dp)
                             )
                         }
                         Spacer(Modifier.width(8.dp))

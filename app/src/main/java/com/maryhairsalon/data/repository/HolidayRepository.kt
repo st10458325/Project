@@ -1,3 +1,9 @@
+/**
+ * HolidayRepository.kt
+ *
+ * Repository for fetching South African public holidays using NagerDateApi.
+ * Used by the booking calendar to highlight public holidays.
+ */
 package com.maryhairsalon.data.repository
 
 import android.util.Log

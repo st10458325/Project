@@ -1,3 +1,9 @@
+/**
+ * PendingActionsStore.kt
+ *
+ * Persistent offline queue for actions performed when internet connectivity is lost (e.g. booking cancellations).
+ * Uses Jetpack DataStore to store pending cancellation IDs for background synchronization when online.
+ */
 package com.maryhairsalon.data.local
 
 import android.content.Context

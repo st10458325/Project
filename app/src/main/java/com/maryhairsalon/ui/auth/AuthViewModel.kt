@@ -1,3 +1,9 @@
+/**
+ * AuthViewModel.kt
+ *
+ * ViewModel handling application authentication state flow.
+ * Coordinates user sign-in, account creation, Google Sign-In, profile loading, and email verification status.
+ */
 package com.maryhairsalon.ui.auth
 
 import android.util.Log

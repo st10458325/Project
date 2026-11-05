@@ -1,3 +1,8 @@
+/**
+ * AuthComponents.kt
+ *
+ * Shared text fields, section dividers, and color styling helpers for authentication views.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.layout.Row

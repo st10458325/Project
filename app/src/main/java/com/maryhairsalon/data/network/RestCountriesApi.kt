@@ -1,3 +1,8 @@
+/**
+ * RestCountriesApi.kt
+ *
+ * Retrofit API interface for retrieving country details and international calling codes from restcountries.com.
+ */
 package com.maryhairsalon.data.network
 
 import retrofit2.http.GET

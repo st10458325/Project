@@ -1,3 +1,8 @@
+/**
+ * ServicesScreen.kt
+ *
+ * Service catalog screen rendering categories, service lists, and search results.
+ */
 package com.maryhairsalon.ui.customer.services
 
 import androidx.compose.foundation.background
@@ -51,15 +56,8 @@ fun ServicesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val colors = MaterialTheme.colorScheme
 
-    // contentWindowInsets = 0: we're opting out of Scaffold's automatic top
-    // inset handling entirely so the gradient can paint under the status
-    // bar. Each branch below applies statusBarsPadding itself where needed.
     Scaffold(
         containerColor = colors.background,
-        // Only the top inset is zeroed — that's what lets the gradient bleed
-        // behind the status bar. Bottom and horizontal keep their normal
-        // system-bar-aware values, so the grid still reserves space above the
-        // tab bar instead of running underneath it.
         contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
     ) { padding ->
         Box(Modifier.padding(padding).fillMaxSize()) {
@@ -113,26 +111,20 @@ private fun CategoriesWithHero(
     val gridState = rememberLazyGridState()
     val armed by remember { derivedStateOf { gridState.firstVisibleItemIndex > 0 } }
 
-    // The floating field should only appear while the user scrolls back up.
-    // On downward scrolling, remove it from composition entirely instead of
-    // relying on an offset that can leave part of the field visible on some devices.
     val floatingSearchVisible = remember { mutableStateOf(true) }
     val currentArmed = rememberUpdatedState(armed)
     val connection = remember {
         object : NestedScrollConnection {
             override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
                 when {
-                    available.y < -1f -> floatingSearchVisible.value = false // scrolling down
-                    available.y > 1f && currentArmed.value -> floatingSearchVisible.value = true // scrolling up
+                    available.y < -1f -> floatingSearchVisible.value = false
+                    available.y > 1f && currentArmed.value -> floatingSearchVisible.value = true
                 }
                 return Offset.Zero
             }
         }
     }
 
-    // Keep the movable search field stable while ensuring it always reads the
-    // latest query and callback. Capturing uiState/onSearchChange directly inside
-    // remember { ... } can leave the field using values from its first composition.
     val currentSearchQuery = rememberUpdatedState(uiState.searchQuery)
     val currentOnSearchChange = rememberUpdatedState(onSearchChange)
 
@@ -151,15 +143,12 @@ private fun CategoriesWithHero(
     Box(Modifier.fillMaxSize().background(gradient).nestedScroll(connection)) {
         LazyVerticalGrid(
             state = gridState,
-            modifier = Modifier.statusBarsPadding(), // content clears the status bar; the gradient behind it doesn't
+            modifier = Modifier.statusBarsPadding(),
             columns = GridCells.Adaptive(minSize = 160.dp),
             contentPadding = PaddingValues(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Brand row is now just ordinary scrolling content — item 0 — no
-            // background, no fixed position. It scrolls away with everything
-            // else, same as any other item in this list.
             item(span = { GridItemSpan(maxLineSpan) }) {
                 SalonBrandRow(onMenuClick = onMenuClick, modifier = Modifier.padding(bottom = 12.dp))
             }
@@ -178,9 +167,6 @@ private fun CategoriesWithHero(
             }
         }
 
-        // The floating search field is shown only when the list is armed and
-        // the user is scrolling upward. When scrolling downward, it is removed
-        // completely, so it cannot remain partially visible on shorter/taller screens.
         if (armed && floatingSearchVisible.value) {
             Box(
                 modifier = Modifier
@@ -199,9 +185,6 @@ private fun CategoryCard(category: Category, onClick: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     Card(
         onClick = onClick,
-        // Fixed height — every card in the grid now lines up regardless of
-        // whether it has a description, so a row never leaves a dead gap
-        // below its shorter neighbor.
         modifier = Modifier.fillMaxWidth().height(230.dp),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surface)
@@ -222,8 +205,6 @@ private fun CategoryCard(category: Category, onClick: () -> Unit) {
                         modifier = Modifier.fillMaxSize()
                     )
                 } else {
-                    // No blank void anymore — a category with no photo yet
-                    // still reads as "a card", not "something broken".
                     Icon(
                         Icons.Default.ContentCut,
                         contentDescription = null,

@@ -1,3 +1,8 @@
+/**
+ * SignupScreen.kt
+ *
+ * Compose screen for registering new user accounts with contact number dial-code selector.
+ */
 package com.maryhairsalon.ui.auth
 
 import androidx.compose.foundation.background
@@ -55,8 +60,6 @@ fun SignupScreen(
         if (uiState.isLoggedIn) onSignedUp()
     }
 
-    // systemBarsPadding keeps the last button clear of the navigation bar;
-    // imePadding keeps the focused field above the keyboard.
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -85,7 +88,6 @@ fun SignupScreen(
         )
         Spacer(Modifier.height(28.dp))
 
-        // First name and surname share a row — saves a whole line of scrolling.
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxWidth()) {
             AuthTextField(name, { name = it }, stringResource(R.string.label_first_name), modifier = Modifier.weight(1f))
             AuthTextField(surname, { surname = it }, stringResource(R.string.label_surname), modifier = Modifier.weight(1f))

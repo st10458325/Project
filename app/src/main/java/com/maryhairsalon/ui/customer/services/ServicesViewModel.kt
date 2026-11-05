@@ -1,3 +1,8 @@
+/**
+ * ServicesViewModel.kt
+ *
+ * ViewModel for loading service categories and executing query filtering for hair styling catalog searches.
+ */
 package com.maryhairsalon.ui.customer.services
 
 import androidx.lifecycle.ViewModel

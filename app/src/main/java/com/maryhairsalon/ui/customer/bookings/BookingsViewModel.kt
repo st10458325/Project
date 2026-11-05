@@ -1,3 +1,8 @@
+/**
+ * BookingsViewModel.kt
+ *
+ * ViewModel delivering real-time user bookings, offline pending cancellation queues, and status filtering logic.
+ */
 package com.maryhairsalon.ui.customer.bookings
 
 import android.app.Application
@@ -72,7 +77,6 @@ class BookingsViewModel(application: Application) : AndroidViewModel(application
                     activeFilter = filter,
                     isOffline = !online,
                     pendingCancelIds = pendingIds,
-                    // Don't show a scary error just because we're offline — the banner already covers that.
                     errorMessage = if (online) "Something went wrong loading your bookings. Please check your connection." else null
                 )
             }
@@ -84,11 +88,6 @@ class BookingsViewModel(application: Application) : AndroidViewModel(application
     )
 
     init {
-        // Whenever connectivity comes back — including right at app start, if
-        // we already have a connection — flush anything queued from an
-        // earlier offline session. BookingSyncScheduler (triggered from
-        // cancelBooking below) is the backup path for when the app was
-        // fully closed while still offline.
         viewModelScope.launch {
             isOnline.collect { online ->
                 if (online) syncManager.syncPendingCancellations()

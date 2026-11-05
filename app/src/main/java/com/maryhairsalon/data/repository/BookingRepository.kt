@@ -1,3 +1,10 @@
+/**
+ * BookingRepository.kt
+ *
+ * Core booking repository managing customer appointments in Firestore.
+ * Employs Firestore transactions to guarantee slot lock concurrency and prevent double-booking.
+ * Provides live snapshot flows for customer and employee appointment views.
+ */
 package com.maryhairsalon.data.repository
 
 import android.util.Log
@@ -48,7 +55,6 @@ class BookingRepository(
         awaitClose { registration.remove() }
     }
 
-    /** Uses the stylist's stable user ID rather than their display name, so this keeps working even if they rename themselves in Settings. */
     /** Uses the stylist's display name to match the security rules, which check `employee == myName()`. Safe because Settings locks staff names — see EmployeeScheduleViewModel. */
     fun observeBookingsForEmployee(employeeName: String): Flow<Result<List<Booking>>> = callbackFlow {
         val statusOrder = mapOf("pending" to 0, "upcoming" to 1, "completed" to 2, "cancelled" to 3)

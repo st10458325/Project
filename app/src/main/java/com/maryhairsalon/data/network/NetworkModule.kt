@@ -1,3 +1,9 @@
+/**
+ * NetworkModule.kt
+ *
+ * Centralized singleton providing OkHttpClient, Moshi JSON converter, and Retrofit API instances.
+ * Configures network clients for Open-Meteo, NagerDate, RestCountries, and AdviceSlip services.
+ */
 package com.maryhairsalon.data.network
 
 import com.squareup.moshi.Moshi

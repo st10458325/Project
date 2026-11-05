@@ -1,3 +1,10 @@
+/**
+ * AuthRepository.kt
+ *
+ * Primary authentication and user profile repository.
+ * Interfaces with Firebase Authentication and Firestore to handle user registration, logins,
+ * Google Sign-In, user role retrieval, profile updates, password changes, and email verification status.
+ */
 package com.maryhairsalon.data.repository
 
 import android.util.Log

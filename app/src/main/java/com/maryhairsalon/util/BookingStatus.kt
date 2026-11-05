@@ -1,3 +1,8 @@
+/**
+ * BookingStatus.kt
+ *
+ * Utility functions for formatting raw booking status identifiers into localized display titles.
+ */
 package com.maryhairsalon.util
 
 /** Human-readable label for a booking's raw status string — shared across customer, employee, and manager screens. */

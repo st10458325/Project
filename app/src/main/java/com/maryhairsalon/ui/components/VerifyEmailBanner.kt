@@ -1,3 +1,8 @@
+/**
+ * VerifyEmailBanner.kt
+ *
+ * Warning banner composable displaying email verification prompts and resend buttons.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.background

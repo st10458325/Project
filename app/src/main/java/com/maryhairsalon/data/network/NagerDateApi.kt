@@ -1,3 +1,9 @@
+/**
+ * NagerDateApi.kt
+ *
+ * Retrofit API interface for fetching official public holiday dates from date.nager.at.
+ * Used to query public holidays for South Africa (ZA).
+ */
 package com.maryhairsalon.data.network
 
 import retrofit2.http.GET

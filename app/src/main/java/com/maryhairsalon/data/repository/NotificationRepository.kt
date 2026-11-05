@@ -1,3 +1,9 @@
+/**
+ * NotificationRepository.kt
+ *
+ * Repository for managing Firebase Cloud Messaging (FCM) push tokens in Firestore.
+ * Associates device tokens with authenticated user UIDs for notification delivery.
+ */
 package com.maryhairsalon.data.repository
 
 import com.google.firebase.firestore.FieldValue

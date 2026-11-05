@@ -1,3 +1,8 @@
+/**
+ * AboutViewModel.kt
+ *
+ * ViewModel retrieving active stylist profiles and random daily advice for the About screen.
+ */
 package com.maryhairsalon.ui.customer.about
 
 import androidx.lifecycle.ViewModel
@@ -27,8 +32,6 @@ class AboutViewModel(
     val uiState: StateFlow<AboutUiState> = _uiState.asStateFlow()
 
     init {
-        // Two independent fetches — each updates its own slice of state via
-        // .copy() so neither one overwrites what the other has already set.
         viewModelScope.launch {
             try {
                 val stylists = repository.getEmployees()

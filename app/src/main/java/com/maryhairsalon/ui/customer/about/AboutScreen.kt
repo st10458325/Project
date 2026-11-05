@@ -1,3 +1,8 @@
+/**
+ * AboutScreen.kt
+ *
+ * Composable screen introducing Mary Hair Salon's styling team and daily hair care advice.
+ */
 package com.maryhairsalon.ui.customer.about
 
 import androidx.compose.foundation.background
@@ -34,9 +39,6 @@ fun AboutScreen(
     val colors = MaterialTheme.colorScheme
     val gradient = rememberTopScreenGradient()
 
-    // Same structure as the Services screen: no top bar, the gradient paints
-    // behind the status bar, and the brand row + hero header are ordinary
-    // scrolling content at the top of the list.
     Scaffold(
         containerColor = colors.background,
         contentWindowInsets = WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)

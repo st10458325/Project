@@ -1,7 +1,17 @@
+/**
+ * User.kt
+ *
+ * Data model representing a registered application user profile.
+ * Maps directly to Firestore documents in the "users" collection.
+ * Encapsulates role assignment ("customer", "employee", "manager") and profile details.
+ */
 package com.maryhairsalon.data.models
 
 import com.google.firebase.firestore.DocumentId
 
+/**
+ * Entity storing user account details, role, and optional profile image.
+ */
 data class User(
     @DocumentId val id: String = "",
     val name: String = "",

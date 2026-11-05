@@ -1,3 +1,8 @@
+/**
+ * CountryCodeViewModel.kt
+ *
+ * ViewModel for populating international country calling code options in form fields.
+ */
 package com.maryhairsalon.ui.auth
 
 import androidx.lifecycle.ViewModel

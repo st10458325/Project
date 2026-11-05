@@ -1,19 +1,20 @@
+/**
+ * SettingsViewModel.kt
+ *
+ * ViewModel for updating user profile info, changing auth passwords, toggling application themes, and setting app languages.
+ */
 package com.maryhairsalon.ui.settings
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import com.maryhairsalon.data.repository.AuthRepository
-import com.maryhairsalon.data.repository.AuthResult
-import com.maryhairsalon.locale.LocaleManager
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.maryhairsalon.data.local.LocaleManager
 import com.maryhairsalon.data.local.ThemeMode
 import com.maryhairsalon.data.local.ThemePreferences
+import com.maryhairsalon.data.repository.AuthRepository
+import com.maryhairsalon.data.repository.AuthResult
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 

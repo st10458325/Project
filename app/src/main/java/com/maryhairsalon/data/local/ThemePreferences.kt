@@ -1,3 +1,9 @@
+/**
+ * ThemePreferences.kt
+ *
+ * Preference store for managing and persisting the application's UI theme mode (SYSTEM, LIGHT, DARK).
+ * Uses Jetpack DataStore to store theme choices across app restarts.
+ */
 package com.maryhairsalon.data.local
 
 import android.content.Context

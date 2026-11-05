@@ -1,3 +1,8 @@
+/**
+ * ManagerViewModel.kt
+ *
+ * ViewModel driving manager dashboard actions: appointment status updates, stylist reassignments, user role promotions, and catalog service CRUD.
+ */
 package com.maryhairsalon.ui.manager
 
 import androidx.lifecycle.ViewModel
@@ -36,7 +41,6 @@ class ManagerViewModel(
     private val catalogRepository: CatalogRepository = CatalogRepository()
 ) : ViewModel() {
 
-    // ---- All Bookings tab ----
     private val _activeFilter = MutableStateFlow("all")
     private val _bookingActionMessage = MutableStateFlow<String?>(null)
     val bookingActionMessage: StateFlow<String?> = _bookingActionMessage.asStateFlow()
@@ -78,7 +82,6 @@ class ManagerViewModel(
         }
     }
 
-    // ---- Staff tab ----
     val staffUiState: StateFlow<ManagerStaffUiState> = repository.observeStaffAndCustomers()
         .map { result ->
             result.fold(
@@ -92,7 +95,6 @@ class ManagerViewModel(
         viewModelScope.launch { runCatching { repository.setUserRole(uid, role) } }
     }
 
-    // ---- Catalog tab ----
     private val _catalogActionMessage = MutableStateFlow<String?>(null)
     val catalogActionMessage: StateFlow<String?> = _catalogActionMessage.asStateFlow()
     fun clearCatalogActionMessage() { _catalogActionMessage.value = null }

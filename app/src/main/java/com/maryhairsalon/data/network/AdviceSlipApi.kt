@@ -1,3 +1,9 @@
+/**
+ * AdviceSlipApi.kt
+ *
+ * Retrofit API interface for fetching random advice slips from api.adviceslip.com.
+ * Uses a cache buster query parameter to prevent aggressive CDN caching.
+ */
 package com.maryhairsalon.data.network
 
 import retrofit2.http.GET

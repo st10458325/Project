@@ -1,3 +1,8 @@
+/**
+ * SyncManager.kt
+ *
+ * Synchronizer responsible for replaying queued offline actions stored in PendingActionsStore against Firestore.
+ */
 package com.maryhairsalon.sync
 
 import android.util.Log

@@ -4,7 +4,7 @@
 
 A native Android app for **Mary Hair Salon** built with **Kotlin**, **Jetpack Compose**, **Material 3** and **Firebase**. It serves three roles — **Customers**, **Employees (stylists)** and **Managers** — with offline support, live push notifications, four external API integrations and three languages.
 
-📺 **Demo video:** [PASTE_YOUTUBE_LINK_HERE](PASTE_YOUTUBE_LINK_HERE)
+📺 **Demo video:** [GOOGLE_LINK_HERE](https://drive.google.com/file/d/1i8M2twzMsTMYNGeIUOJGBkUz5gg_ya_q/view?usp=drive_link)
 
 <!-- Add screenshots: create a /screenshots folder, commit the images, and uncomment -->
 <!--

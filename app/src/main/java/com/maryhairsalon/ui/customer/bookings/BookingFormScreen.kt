@@ -1,3 +1,8 @@
+/**
+ * BookingFormScreen.kt
+ *
+ * Appointment booking and rescheduling screen with service drop-downs, stylist row, calendar date picker, and pricing summary.
+ */
 package com.maryhairsalon.ui.customer.bookings
 
 import androidx.compose.foundation.background
@@ -25,6 +30,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -156,7 +162,6 @@ fun BookingFormScreen(
                 modifier = Modifier.fillMaxWidth()
             )
 
-
             SectionTitle("7. Booking Summary")
             BookingSummaryCard(uiState = uiState, total = viewModel.total)
 
@@ -191,7 +196,7 @@ fun BookingFormScreen(
                 "Your information is safe and will never be shared.",
                 style = MaterialTheme.typography.labelSmall,
                 modifier = Modifier.fillMaxWidth(),
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                textAlign = TextAlign.Center
             )
         }
     }
@@ -299,8 +304,8 @@ private fun EmployeeRow(employees: List<User>, selectedId: String?, onSelect: (S
                     Text(emp.name.split(" ").mapNotNull { it.firstOrNull() }.joinToString(""))
                 }
                 Spacer(Modifier.height(6.dp))
-                Text(emp.name, style = MaterialTheme.typography.labelMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
-                Text("Stylist", style = MaterialTheme.typography.labelSmall, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                Text(emp.name, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.Center)
+                Text("Stylist", style = MaterialTheme.typography.labelSmall, textAlign = TextAlign.Center)
             }
         }
     }
@@ -382,7 +387,7 @@ private fun BookingCalendar(
                 Text(
                     dow.getDisplayName(TextStyle.SHORT, Locale.ENGLISH),
                     style = MaterialTheme.typography.labelSmall,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
             }

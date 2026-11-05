@@ -1,3 +1,8 @@
+/**
+ * SettingsScreen.kt
+ *
+ * User settings screen for managing profile contact details, changing passwords, selecting theme preferences, and switching app locales.
+ */
 package com.maryhairsalon.ui.settings
 
 import androidx.compose.foundation.background
@@ -23,13 +28,12 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.maryhairsalon.R
-import com.maryhairsalon.locale.LocaleManager
+import com.maryhairsalon.data.local.LocaleManager
 import com.maryhairsalon.ui.theme.AccentAmber
 import com.maryhairsalon.ui.theme.BackgroundDeep
 import com.maryhairsalon.ui.theme.SurfaceLighter
 import com.maryhairsalon.ui.theme.TextMuted
 import com.maryhairsalon.data.local.ThemeMode
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,7 +153,6 @@ fun SettingsScreen(
                     }
                 }
             }
-
 
             SectionCard(title = "Appearance") {
                 Text(

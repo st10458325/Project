@@ -1,3 +1,8 @@
+/**
+ * SalonLogo.kt
+ *
+ * Circular clipped image composable rendering the Mary Hair Salon brand icon.
+ */
 package com.maryhairsalon.ui.components
 
 import androidx.compose.foundation.Image

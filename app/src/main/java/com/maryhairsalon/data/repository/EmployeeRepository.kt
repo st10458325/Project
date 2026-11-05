@@ -1,3 +1,9 @@
+/**
+ * EmployeeRepository.kt
+ *
+ * Repository for querying active employee profiles from Firestore.
+ * Used during customer booking creation to list available hair stylists.
+ */
 package com.maryhairsalon.data.repository
 
 import com.google.firebase.firestore.FirebaseFirestore

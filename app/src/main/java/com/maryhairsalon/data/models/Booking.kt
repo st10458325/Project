@@ -1,7 +1,17 @@
+/**
+ * Booking.kt
+ *
+ * Data model representing a salon appointment reservation in Mary Hair Salon.
+ * Maps directly to Firestore documents in the "bookings" collection.
+ * Holds customer identity, service category, date/time schedule, pricing breakdowns, and notification status flags.
+ */
 package com.maryhairsalon.data.models
 
 import com.google.firebase.firestore.DocumentId
 
+/**
+ * Entity representing an appointment booking.
+ */
 data class Booking(
     @DocumentId val id: String = "",
     val uid: String = "",

@@ -1,3 +1,8 @@
+/**
+ * EmployeeScheduleViewModel.kt
+ *
+ * ViewModel supplying assigned appointments for the logged-in employee and updating booking states.
+ */
 package com.maryhairsalon.ui.employee
 
 import androidx.lifecycle.ViewModel
